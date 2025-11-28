@@ -865,43 +865,53 @@
       const createText = document.getElementById('create-text');
       const createLoading = document.getElementById('create-loading');
 
+      if (!createBtn || !createText || !createLoading) {
+        console.error('Elementos do botão não encontrados');
+        return;
+      }
+
       createBtn.disabled = true;
       createText.style.display = 'none';
       createLoading.style.display = 'inline-block';
 
-      const appointmentData = {
-        patient_name: document.getElementById('patient-name').value.trim(),
-        patient_age: document.getElementById('patient-age').value.trim(),
-        school: document.getElementById('school').value.trim(),
-        guardian_name: document.getElementById('guardian-name').value.trim(),
-        guardian_phone: document.getElementById('guardian-phone').value.trim(),
-        appointment_date: document.getElementById('appointment-date').value,
-        appointment_time: document.getElementById('appointment-time').value,
-        status: 'scheduled',
-        session_notes: '',
-        created_at: new Date().toISOString(),
-        last_updated: new Date().toISOString()
-      };
+      try {
+        const appointmentData = {
+          patient_name: document.getElementById('patient-name').value.trim(),
+          patient_age: document.getElementById('patient-age').value.trim(),
+          school: document.getElementById('school').value.trim(),
+          guardian_name: document.getElementById('guardian-name').value.trim(),
+          guardian_phone: document.getElementById('guardian-phone').value.trim(),
+          appointment_date: document.getElementById('appointment-date').value,
+          appointment_time: document.getElementById('appointment-time').value,
+          status: 'scheduled',
+          session_notes: '',
+          created_at: new Date().toISOString(),
+          last_updated: new Date().toISOString()
+        };
 
-      if (window.dataSdk) {
-        const result = await window.dataSdk.create(appointmentData);
-        if (result.isOk) {
-          document.getElementById('patient-name').value = '';
-          document.getElementById('patient-age').value = '';
-          document.getElementById('school').value = '';
-          document.getElementById('guardian-name').value = '';
-          document.getElementById('guardian-phone').value = '';
-          document.getElementById('appointment-date').value = '';
-          document.getElementById('appointment-time').value = '';
-          showToast('Agendamento criado com sucesso!');
-        } else {
-          showToast('Erro ao criar agendamento', 'error');
+        if (window.dataSdk) {
+          const result = await window.dataSdk.create(appointmentData);
+          if (result.isOk) {
+            document.getElementById('patient-name').value = '';
+            document.getElementById('patient-age').value = '';
+            document.getElementById('school').value = '';
+            document.getElementById('guardian-name').value = '';
+            document.getElementById('guardian-phone').value = '';
+            document.getElementById('appointment-date').value = '';
+            document.getElementById('appointment-time').value = '';
+            showToast('Agendamento criado com sucesso!');
+          } else {
+            showToast('Erro ao criar agendamento', 'error');
+          }
         }
+      } catch (error) {
+        console.error('Erro ao criar agendamento:', error);
+        showToast('Erro ao criar agendamento', 'error');
+      } finally {
+        createBtn.disabled = false;
+        createText.style.display = 'inline';
+        createLoading.style.display = 'none';
       }
-
-      createBtn.disabled = false;
-      createText.style.display = 'inline';
-      createLoading.style.display = 'none';
     }
 
     // Atualizar view atual
@@ -1250,7 +1260,7 @@
         </div>
 
         <div class="report-section">
-          <h4>Observações do Atendimento</h4>
+          <h4>Observa����ões do Atendimento</h4>
           <p style="white-space: pre-wrap;">${record.session_notes || 'Sem observações registradas.'}</p>
         </div>
 
@@ -1500,5 +1510,5 @@
     // Iniciar aplicação
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bc272e47400c9',t:'MTc2NDM1Mjc3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bc916b7dd00c9',t:'MTc2NDM1MzA0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
