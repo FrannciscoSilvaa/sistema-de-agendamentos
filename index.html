@@ -952,34 +952,35 @@
     }
 
     function updateReceptionistView() {
-      const scheduled = appointments.filter(a => a.status === 'scheduled').length;
+      const scheduledOnly = appointments.filter(a => a.status === 'scheduled');
       const today = new Date().toISOString().split('T')[0];
-      const todayCount = appointments.filter(a => a.appointment_date === today).length;
+      const todayCount = scheduledOnly.filter(a => a.appointment_date === today).length;
+      const cancelled = appointments.filter(a => a.status === 'cancelled').length;
 
       document.getElementById('receptionist-stats').innerHTML = `
         <div class="stat-card">
-          <div class="stat-number">${appointments.length}</div>
-          <div class="stat-label">Total de Agendamentos</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">${scheduled}</div>
-          <div class="stat-label">Agendados</div>
+          <div class="stat-number">${scheduledOnly.length}</div>
+          <div class="stat-label">Agendamentos Ativos</div>
         </div>
         <div class="stat-card">
           <div class="stat-number">${todayCount}</div>
           <div class="stat-label">Hoje</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-number">${cancelled}</div>
+          <div class="stat-label">Cancelados</div>
+        </div>
       `;
 
-      const recent = [...appointments]
+      const recent = [...scheduledOnly]
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        .slice(0, 10);
+        .slice(0, 20);
 
       if (recent.length === 0) {
         document.getElementById('receptionist-appointments').innerHTML = `
           <div class="empty-state">
             <div class="icon">📅</div>
-            <p>Nenhum agendamento realizado ainda.</p>
+            <p>Nenhum agendamento ativo no momento.</p>
           </div>
         `;
       } else {
@@ -998,13 +999,14 @@
               <div class="detail-item"><strong>Responsável:</strong> ${escapeHtml(apt.guardian_name)}</div>
               <div class="detail-item"><strong>Telefone:</strong> ${escapeHtml(apt.guardian_phone)}</div>
             </div>
-            ${apt.status === 'scheduled' ? `
-              <div class="appointment-actions" style="margin-top: 15px;">
-                <button class="btn btn-primary" onclick="openEditModal('${apt.__backendId}')" style="font-size: 13px; padding: 8px 16px;">
-                  ✏️ Editar Agendamento
-                </button>
-              </div>
-            ` : ''}
+            <div class="appointment-actions" style="margin-top: 15px;">
+              <button class="btn btn-primary" onclick="openEditModal('${apt.__backendId}')" style="font-size: 13px; padding: 8px 16px;">
+                ✏️ Editar Agendamento
+              </button>
+              <button class="btn btn-danger" onclick="cancelAppointmentReceptionist('${apt.__backendId}')" style="font-size: 13px; padding: 8px 16px;">
+                ✗ Cancelar
+              </button>
+            </div>
           </div>
         `).join('');
       }
@@ -1247,6 +1249,29 @@
       }
     }
 
+    async function cancelAppointmentReceptionist(backendId) {
+      const confirmed = await showConfirm('Deseja realmente cancelar este agendamento?');
+      
+      if (confirmed) {
+        const record = appointments.find(a => a.__backendId === backendId);
+        if (record) {
+          const updatedRecord = {
+            ...record,
+            status: 'cancelled',
+            last_updated: new Date().toISOString()
+          };
+
+          const result = await window.dataSdk.update(updatedRecord);
+
+          if (result.isOk) {
+            showToast('Agendamento cancelado com sucesso!');
+          } else {
+            showToast('Erro ao cancelar agendamento', 'error');
+          }
+        }
+      }
+    }
+
     function viewReport(backendId) {
       currentReportRecord = appointments.find(a => a.__backendId === backendId);
       if (!currentReportRecord) return;
@@ -1444,5 +1469,5 @@
 
     initApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5c0a93a42200c9',t:'MTc2NDM1NTcyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5c12b151a400c9',t:'MTc2NDM1NjA1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
