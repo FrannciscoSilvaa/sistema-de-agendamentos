@@ -4,28 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Atendimento Psicológico</title>
-  <script src="/_sdk/data_sdk.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body {
-      box-sizing: border-box;
+    * {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100%;
-      padding: 20px;
-      width: 100%;
-    }
-
-    * {
       box-sizing: border-box;
     }
 
-    .app-wrapper {
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
       max-width: 1200px;
       margin: 0 auto;
-      width: 100%;
     }
 
     .header {
@@ -38,13 +33,12 @@
     }
 
     .header h1 {
-      margin: 0 0 10px 0;
       color: #2d3748;
       font-size: 28px;
+      margin-bottom: 10px;
     }
 
     .header p {
-      margin: 0;
       color: #718096;
       font-size: 16px;
     }
@@ -61,7 +55,7 @@
     .login-screen h2 {
       text-align: center;
       color: #2d3748;
-      margin: 0 0 30px 0;
+      margin-bottom: 30px;
     }
 
     .access-options {
@@ -215,7 +209,6 @@
     }
 
     .panel-header h2 {
-      margin: 0;
       color: #2d3748;
       font-size: 24px;
     }
@@ -293,9 +286,9 @@
     }
 
     .patient-info h3 {
-      margin: 0 0 5px 0;
       color: #2d3748;
       font-size: 18px;
+      margin-bottom: 5px;
     }
 
     .appointment-datetime {
@@ -381,7 +374,7 @@
       padding: 30px;
       max-width: 600px;
       width: 100%;
-      max-height: 90%;
+      max-height: 90vh;
       overflow-y: auto;
     }
 
@@ -395,7 +388,6 @@
     }
 
     .modal-header h3 {
-      margin: 0;
       color: #2d3748;
       font-size: 20px;
     }
@@ -473,46 +465,6 @@
       margin-bottom: 15px;
     }
 
-    .report-content {
-      background: #f7fafc;
-      padding: 25px;
-      border-radius: 8px;
-    }
-
-    .report-section {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-
-    .report-section h4 {
-      margin: 0 0 15px 0;
-      color: #2d3748;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 10px;
-    }
-
-    .report-section p {
-      margin: 8px 0;
-      color: #4a5568;
-      line-height: 1.6;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid white;
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     .error-message {
       background: #fed7d7;
       color: #742a2a;
@@ -557,6 +509,39 @@
       }
     }
 
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 6px 8px;
+      color: #718096;
+      transition: all 0.2s;
+    }
+
+    .password-toggle:hover {
+      background: #f7fafc;
+    }
+
+    footer {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 25px;
+      margin-top: 20px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      color: white;
+    }
+
+    footer p {
+      margin: 8px 0;
+    }
+
     @media (max-width: 768px) {
       .access-options {
         grid-template-columns: 1fr;
@@ -573,19 +558,28 @@
       .stats-grid {
         grid-template-columns: 1fr;
       }
+
+      .appointment-actions {
+        flex-direction: column;
+      }
+
+      .appointment-actions .btn {
+        width: 100%;
+      }
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
  </head>
  <body>
-  <div class="app-wrapper">
+  <div class="container">
    <header class="header">
     <h1>Sistema de Atendimento Psicológico</h1>
     <p>Secretaria Municipal de Educação</p>
-   </header>
-   <div class="login-screen" id="login-screen">
+   </header><!-- Tela de Login -->
+   <div class="login-screen" id="loginScreen">
     <h2>Selecione o Tipo de Acesso</h2>
     <div class="access-options">
      <div class="access-card" data-type="receptionist">
@@ -605,211 +599,159 @@
       </div>
      </div>
     </div>
-    <form class="login-form" id="login-form">
+    <form class="login-form" id="loginForm">
      <div class="form-group"><label class="form-label" for="password">Senha de Acesso</label>
-      <div style="position: relative;"><input type="password" id="password" class="form-input" required placeholder="Digite sua senha" style="padding-right: 45px;"> <button type="button" id="toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-size: 16px; padding: 6px 8px; color: #718096; transition: all 0.2s;"> <span id="eye-icon">👁️</span> </button>
+      <div style="position: relative;"><input type="password" id="password" class="form-input" required placeholder="Digite sua senha"> <button type="button" class="password-toggle" id="togglePassword"> <span id="eyeIcon">👁️</span> </button>
       </div>
      </div>
-     <div class="error-message" id="login-error"></div><button type="submit" class="btn btn-primary" id="login-btn"> <span id="login-text">Entrar</span> <span class="loading" id="login-loading" style="display: none;"></span> </button>
+     <div class="error-message" id="loginError"></div><button type="submit" class="btn btn-primary" id="loginBtn"> Entrar </button>
     </form>
-   </div>
-   <main class="main-panel" id="receptionist-panel">
+   </div><!-- Painel da Recepcionista -->
+   <main class="main-panel" id="receptionistPanel">
     <div class="panel-header">
-     <h2>📋 Painel da Recepcionista</h2><button class="btn btn-secondary" id="logout-receptionist">Sair</button>
+     <h2>📋 Painel da Recepcionista</h2><button class="btn btn-secondary" id="logoutReceptionist">Sair</button>
     </div>
-    <div class="stats-grid" id="receptionist-stats"></div>
+    <div class="stats-grid" id="receptionistStats"></div>
     <h3 style="margin-bottom: 20px; color: #2d3748;">Novo Agendamento</h3>
-    <form id="appointment-form">
+    <form id="appointmentForm">
      <div class="form-grid">
-      <div class="form-group"><label class="form-label" for="patient-name">Nome da Criança *</label> <input type="text" id="patient-name" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="patientName">Nome da Criança *</label> <input type="text" id="patientName" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="patient-age">Idade *</label> <input type="text" id="patient-age" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="patientAge">Idade *</label> <input type="text" id="patientAge" class="form-input" required>
       </div>
       <div class="form-group"><label class="form-label" for="school">Escola *</label> <input type="text" id="school" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="guardian-name">Nome do Responsável *</label> <input type="text" id="guardian-name" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="guardianName">Nome do Responsável *</label> <input type="text" id="guardianName" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="guardian-phone">Telefone do Responsável *</label> <input type="tel" id="guardian-phone" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="guardianPhone">Telefone do Responsável *</label> <input type="tel" id="guardianPhone" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="appointment-date">Data de Agendamento *</label> <input type="date" id="appointment-date" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="appointmentDate">Data de Agendamento *</label> <input type="date" id="appointmentDate" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="appointment-time">Horário do Atendimento *</label> <input type="time" id="appointment-time" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="appointmentTime">Horário do Atendimento *</label> <input type="time" id="appointmentTime" class="form-input" required>
       </div>
-     </div><button type="submit" class="btn btn-primary" id="create-btn" style="margin-top: 10px;"> <span id="create-text">✓ Agendar Consulta</span> <span class="loading" id="create-loading" style="display: none;"></span> </button>
+     </div><button type="submit" class="btn btn-primary" style="margin-top: 10px;"> ✓ Agendar Consulta </button>
     </form>
     <div class="appointments-list">
-     <h3 style="margin-bottom: 20px; color: #2d3748;">Agendamentos Recentes</h3>
-     <div id="receptionist-appointments"></div>
+     <h3 style="margin-bottom: 20px; color: #2d3748;">Agendamentos Ativos</h3>
+     <div id="receptionistAppointments"></div>
     </div>
-   </main>
-   <main class="main-panel" id="psychologist-panel">
+   </main><!-- Painel da Psicóloga -->
+   <main class="main-panel" id="psychologistPanel">
     <div class="panel-header">
-     <h2>👩‍⚕️ Painel da Psicóloga</h2><button class="btn btn-secondary" id="logout-psychologist">Sair</button>
+     <h2>👩‍⚕️ Painel da Psicóloga</h2><button class="btn btn-secondary" id="logoutPsychologist">Sair</button>
     </div>
-    <div class="stats-grid" id="psychologist-stats"></div>
+    <div class="stats-grid" id="psychologistStats"></div>
     <div class="filter-bar">
-     <div class="filter-group"><label class="form-label">Filtrar por Status</label> <select id="status-filter"> <option value="all">Todos</option> <option value="scheduled">Agendados</option> <option value="completed">Concluídos</option> <option value="cancelled">Cancelados</option> </select>
+     <div class="filter-group"><label class="form-label">Filtrar por Status</label> <select id="statusFilter"> <option value="all">Todos</option> <option value="scheduled">Agendados</option> <option value="completed">Concluídos</option> <option value="cancelled">Cancelados</option> </select>
      </div>
-     <div class="filter-group"><label class="form-label">Buscar Paciente</label> <input type="text" id="search-input" class="form-input" placeholder="Digite o nome...">
+     <div class="filter-group"><label class="form-label">Buscar Paciente</label> <input type="text" id="searchInput" class="form-input" placeholder="Digite o nome...">
      </div>
     </div>
     <div class="appointments-list">
-     <div id="psychologist-appointments"></div>
+     <div id="psychologistAppointments"></div>
     </div>
-   </main>
-   <div class="modal" id="edit-modal">
+   </main><!-- Modal de Edição -->
+   <div class="modal" id="editModal">
     <div class="modal-content">
      <div class="modal-header">
-      <h3>Editar Agendamento</h3><button class="close-modal" data-modal="edit-modal">×</button>
+      <h3>Editar Agendamento</h3><button class="close-modal" data-modal="editModal">×</button>
      </div>
-     <form id="edit-form">
+     <form id="editForm">
       <div class="form-grid">
-       <div class="form-group"><label class="form-label" for="edit-patient-name">Nome da Criança *</label> <input type="text" id="edit-patient-name" class="form-input" required>
+       <div class="form-group"><label class="form-label" for="editPatientName">Nome da Criança *</label> <input type="text" id="editPatientName" class="form-input" required>
        </div>
-       <div class="form-group"><label class="form-label" for="edit-patient-age">Idade *</label> <input type="text" id="edit-patient-age" class="form-input" required>
+       <div class="form-group"><label class="form-label" for="editPatientAge">Idade *</label> <input type="text" id="editPatientAge" class="form-input" required>
        </div>
-       <div class="form-group"><label class="form-label" for="edit-school">Escola *</label> <input type="text" id="edit-school" class="form-input" required>
+       <div class="form-group"><label class="form-label" for="editSchool">Escola *</label> <input type="text" id="editSchool" class="form-input" required>
        </div>
-       <div class="form-group"><label class="form-label" for="edit-guardian-name">Nome do Responsável *</label> <input type="text" id="edit-guardian-name" class="form-input" required>
+       <div class="form-group"><label class="form-label" for="editGuardianName">Nome do Responsável *</label> <input type="text" id="editGuardianName" class="form-input" required>
        </div>
-       <div class="form-group"><label class="form-label" for="edit-guardian-phone">Telefone do Responsável *</label> <input type="tel" id="edit-guardian-phone" class="form-input" required>
+       <div class="form-group"><label class="form-label" for="editGuardianPhone">Telefone do Responsável *</label> <input type="tel" id="editGuardianPhone" class="form-input" required>
        </div>
-       <div class="form-group"><label class="form-label" for="edit-appointment-date">Data de Agendamento *</label> <input type="date" id="edit-appointment-date" class="form-input" required>
+       <div class="form-group"><label class="form-label" for="editAppointmentDate">Data de Agendamento *</label> <input type="date" id="editAppointmentDate" class="form-input" required>
        </div>
-       <div class="form-group"><label class="form-label" for="edit-appointment-time">Horário do Atendimento *</label> <input type="time" id="edit-appointment-time" class="form-input" required>
+       <div class="form-group"><label class="form-label" for="editAppointmentTime">Horário do Atendimento *</label> <input type="time" id="editAppointmentTime" class="form-input" required>
        </div>
       </div>
-      <div style="display: flex; gap: 10px; margin-top: 20px;"><button type="submit" class="btn btn-success" id="update-btn" style="flex: 1;"> <span id="update-text">Salvar Alterações</span> <span class="loading" id="update-loading" style="display: none;"></span> </button> <button type="button" class="btn btn-secondary" data-modal="edit-modal">Cancelar</button>
+      <div style="display: flex; gap: 10px; margin-top: 20px;"><button type="submit" class="btn btn-success" style="flex: 1;"> Salvar Alterações </button> <button type="button" class="btn btn-secondary" data-modal="editModal">Cancelar</button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Modal de Atendimento -->
+   <div class="modal" id="sessionModal">
+    <div class="modal-content">
+     <div class="modal-header">
+      <h3>Registrar Atendimento</h3><button class="close-modal" data-modal="sessionModal">×</button>
+     </div>
+     <div id="sessionPatientInfo" style="background: #f7fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
+     <form id="sessionForm">
+      <div class="form-group"><label class="form-label" for="sessionNotes">Observações do Atendimento *</label> <textarea id="sessionNotes" required placeholder="Descreva as observações, evolução, técnicas utilizadas..."></textarea>
+      </div>
+      <div style="display: flex; gap: 10px;"><button type="submit" class="btn btn-success" style="flex: 1;"> Concluir Atendimento </button> <button type="button" class="btn btn-secondary" data-modal="sessionModal">Cancelar</button>
       </div>
      </form>
     </div>
    </div>
-   <div class="modal" id="session-modal">
-    <div class="modal-content">
-     <div class="modal-header">
-      <h3>Registrar Atendimento</h3><button class="close-modal" data-modal="session-modal">×</button>
-     </div>
-     <div id="session-patient-info" style="background: #f7fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
-     <form id="session-form">
-      <div class="form-group"><label class="form-label" for="session-notes">Observações do Atendimento *</label> <textarea id="session-notes" required placeholder="Descreva as observações, evolução, técnicas utilizadas..."></textarea>
-      </div>
-      <div style="display: flex; gap: 10px;"><button type="submit" class="btn btn-success" id="complete-btn" style="flex: 1;"> <span id="complete-text">Concluir Atendimento</span> <span class="loading" id="complete-loading" style="display: none;"></span> </button> <button type="button" class="btn btn-secondary" data-modal="session-modal">Cancelar</button>
-      </div>
-     </form>
-    </div>
-   </div>
-   <div class="modal" id="report-modal">
-    <div class="modal-content">
-     <div class="modal-header">
-      <h3>Relatório de Atendimento</h3><button class="close-modal" data-modal="report-modal">×</button>
-     </div>
-     <div class="report-content" id="report-content"></div>
-     <div style="display: flex; gap: 10px; margin-top: 20px;"><button class="btn btn-primary" id="download-pdf" style="flex: 1;"> 📄 Baixar PDF </button> <button class="btn btn-secondary" data-modal="report-modal">Fechar</button>
-     </div>
-    </div>
-   </div>
-   <footer style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin-top: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <p style="margin: 0; color: white; font-size: 15px; font-weight: 600;">© 2024 Sistema de Atendimento Psicológico</p>
-    <p style="margin: 8px 0; color: white; font-size: 14px;">Secretaria Municipal de Educação de Cocal dos Alves</p>
-    <p style="margin: 8px 0; color: white; font-size: 13px; font-style: italic;">"Ensinando com amor, transformando com dedicação!"</p>
-    <p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.9); font-size: 12px;">💻 Desenvolvido por <strong style="font-style: italic;">@FranciscoSilva</strong></p>
+   <footer>
+    <p style="font-size: 15px; font-weight: 600;">© 2024 Sistema de Atendimento Psicológico</p>
+    <p style="font-size: 14px;">Secretaria Municipal de Educação de Cocal dos Alves</p>
+    <p style="font-size: 13px; font-style: italic;">"Ensinando com amor, transformando com dedicação!"</p>
+    <p style="font-size: 12px; opacity: 0.9;">💻 Desenvolvido por <strong style="font-style: italic;">@FranciscoSilva</strong></p>
    </footer>
   </div>
   <script>
-    const passwords = {
+    // Configurações
+    const PASSWORDS = {
       receptionist: 'mirela123',
       psychologist: 'bia321'
     };
 
+    // Estado da aplicação
     let appointments = [];
     let currentUser = null;
     let selectedAccessType = null;
-    let currentSessionRecord = null;
-    let currentReportRecord = null;
-    let currentEditRecord = null;
+    let currentEditAppointment = null;
+    let currentSessionAppointment = null;
 
-    const dataHandler = {
-      onDataChanged(data) {
-        appointments = data;
-        updateCurrentView();
-      }
-    };
-
-    async function initApp() {
-      if (window.dataSdk) {
-        const initResult = await window.dataSdk.init(dataHandler);
-        if (!initResult.isOk) {
-          console.error('Erro ao inicializar Data SDK');
-          showToast('Erro ao carregar dados', 'error');
-        }
-      }
-
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+      loadAppointments();
       setupEventListeners();
-
-      const savedUser = localStorage.getItem('currentUser');
-      if (savedUser) {
-        currentUser = savedUser;
-        showPanel(savedUser);
-      }
-    }
+      checkSavedSession();
+    });
 
     function setupEventListeners() {
+      // Seleção de tipo de acesso
       document.querySelectorAll('.access-card').forEach(card => {
         card.addEventListener('click', function() {
           selectAccessType(this.dataset.type);
         });
       });
 
-      const togglePasswordBtn = document.getElementById('toggle-password');
-      if (togglePasswordBtn) {
-        togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
-      }
+      // Toggle de senha
+      document.getElementById('togglePassword').addEventListener('click', togglePasswordVisibility);
 
-      const loginForm = document.getElementById('login-form');
-      if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-      }
+      // Login
+      document.getElementById('loginForm').addEventListener('submit', handleLogin);
 
-      const appointmentForm = document.getElementById('appointment-form');
-      if (appointmentForm) {
-        appointmentForm.addEventListener('submit', createAppointment);
-      }
+      // Criar agendamento
+      document.getElementById('appointmentForm').addEventListener('submit', createAppointment);
 
-      const editForm = document.getElementById('edit-form');
-      if (editForm) {
-        editForm.addEventListener('submit', updateAppointment);
-      }
+      // Editar agendamento
+      document.getElementById('editForm').addEventListener('submit', updateAppointment);
 
-      const sessionForm = document.getElementById('session-form');
-      if (sessionForm) {
-        sessionForm.addEventListener('submit', completeSession);
-      }
+      // Registrar atendimento
+      document.getElementById('sessionForm').addEventListener('submit', completeSession);
 
-      const logoutReceptionist = document.getElementById('logout-receptionist');
-      if (logoutReceptionist) {
-        logoutReceptionist.addEventListener('click', logout);
-      }
+      // Logout
+      document.getElementById('logoutReceptionist').addEventListener('click', logout);
+      document.getElementById('logoutPsychologist').addEventListener('click', logout);
 
-      const logoutPsychologist = document.getElementById('logout-psychologist');
-      if (logoutPsychologist) {
-        logoutPsychologist.addEventListener('click', logout);
-      }
+      // Filtros
+      document.getElementById('statusFilter').addEventListener('change', applyFilters);
+      document.getElementById('searchInput').addEventListener('input', applyFilters);
 
-      const statusFilter = document.getElementById('status-filter');
-      if (statusFilter) {
-        statusFilter.addEventListener('change', applyFilters);
-      }
-
-      const searchInput = document.getElementById('search-input');
-      if (searchInput) {
-        searchInput.addEventListener('input', applyFilters);
-      }
-
-      const downloadPdfBtn = document.getElementById('download-pdf');
-      if (downloadPdfBtn) {
-        downloadPdfBtn.addEventListener('click', downloadPDF);
-      }
-
+      // Fechar modais
       document.querySelectorAll('[data-modal]').forEach(btn => {
         btn.addEventListener('click', function() {
           closeModal(this.dataset.modal);
@@ -823,13 +765,13 @@
         card.classList.remove('selected');
       });
       document.querySelector(`[data-type="${type}"]`).classList.add('selected');
-      document.getElementById('login-form').classList.add('active');
+      document.getElementById('loginForm').classList.add('active');
       document.getElementById('password').focus();
     }
 
     function togglePasswordVisibility() {
       const passwordInput = document.getElementById('password');
-      const eyeIcon = document.getElementById('eye-icon');
+      const eyeIcon = document.getElementById('eyeIcon');
       
       if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
@@ -840,26 +782,16 @@
       }
     }
 
-    async function handleLogin(event) {
-      event.preventDefault();
+    function handleLogin(e) {
+      e.preventDefault();
       
       const password = document.getElementById('password').value;
-      const errorDiv = document.getElementById('login-error');
-      const loginBtn = document.getElementById('login-btn');
-      const loginText = document.getElementById('login-text');
-      const loginLoading = document.getElementById('login-loading');
+      const errorDiv = document.getElementById('loginError');
 
-      errorDiv.classList.remove('active');
-      loginBtn.disabled = true;
-      loginText.style.display = 'none';
-      loginLoading.style.display = 'inline-block';
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      if (password === passwords[selectedAccessType]) {
+      if (password === PASSWORDS[selectedAccessType]) {
         currentUser = selectedAccessType;
         localStorage.setItem('currentUser', selectedAccessType);
-        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'none';
         showPanel(selectedAccessType);
         showToast('Login realizado com sucesso!');
       } else {
@@ -867,20 +799,15 @@
         errorDiv.classList.add('active');
       }
 
-      loginBtn.disabled = false;
-      loginText.style.display = 'inline';
-      loginLoading.style.display = 'none';
       document.getElementById('password').value = '';
     }
 
     function showPanel(userType) {
-      document.getElementById('login-screen').style.display = 'none';
-      
       if (userType === 'receptionist') {
-        document.getElementById('receptionist-panel').classList.add('active');
+        document.getElementById('receptionistPanel').classList.add('active');
         updateReceptionistView();
       } else {
-        document.getElementById('psychologist-panel').classList.add('active');
+        document.getElementById('psychologistPanel').classList.add('active');
         updatePsychologistView();
       }
     }
@@ -889,75 +816,55 @@
       currentUser = null;
       selectedAccessType = null;
       localStorage.removeItem('currentUser');
-      document.getElementById('receptionist-panel').classList.remove('active');
-      document.getElementById('psychologist-panel').classList.remove('active');
-      document.getElementById('login-screen').style.display = 'block';
-      document.getElementById('login-form').classList.remove('active');
+      document.getElementById('receptionistPanel').classList.remove('active');
+      document.getElementById('psychologistPanel').classList.remove('active');
+      document.getElementById('loginScreen').style.display = 'block';
+      document.getElementById('loginForm').classList.remove('active');
       document.querySelectorAll('.access-card').forEach(card => {
         card.classList.remove('selected');
       });
     }
 
-    async function createAppointment(event) {
-      event.preventDefault();
-
-      if (appointments.length >= 999) {
-        showToast('Limite máximo de 999 agendamentos atingido', 'error');
-        return;
+    function checkSavedSession() {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById('loginScreen').style.display = 'none';
+        showPanel(savedUser);
       }
-
-      const createBtn = document.getElementById('create-btn');
-      const createText = document.getElementById('create-text');
-      const createLoading = document.getElementById('create-loading');
-
-      createBtn.disabled = true;
-      createText.style.display = 'none';
-      createLoading.style.display = 'inline-block';
-
-      const appointmentData = {
-        id: Date.now().toString(),
-        patient_name: document.getElementById('patient-name').value.trim(),
-        patient_age: document.getElementById('patient-age').value.trim(),
-        school: document.getElementById('school').value.trim(),
-        guardian_name: document.getElementById('guardian-name').value.trim(),
-        guardian_phone: document.getElementById('guardian-phone').value.trim(),
-        appointment_date: document.getElementById('appointment-date').value,
-        appointment_time: document.getElementById('appointment-time').value,
-        status: 'scheduled',
-        session_notes: '',
-        created_at: new Date().toISOString(),
-        last_updated: new Date().toISOString()
-      };
-
-      const result = await window.dataSdk.create(appointmentData);
-
-      if (result.isOk) {
-        event.target.reset();
-        showToast('✅ Agendamento criado com sucesso!');
-      } else {
-        showToast('Erro ao criar agendamento', 'error');
-      }
-
-      createBtn.disabled = false;
-      createText.style.display = 'inline';
-      createLoading.style.display = 'none';
     }
 
-    function updateCurrentView() {
-      if (currentUser === 'receptionist') {
-        updateReceptionistView();
-      } else if (currentUser === 'psychologist') {
-        updatePsychologistView();
-      }
+    function createAppointment(e) {
+      e.preventDefault();
+
+      const appointment = {
+        id: Date.now().toString(),
+        patientName: document.getElementById('patientName').value.trim(),
+        patientAge: document.getElementById('patientAge').value.trim(),
+        school: document.getElementById('school').value.trim(),
+        guardianName: document.getElementById('guardianName').value.trim(),
+        guardianPhone: document.getElementById('guardianPhone').value.trim(),
+        appointmentDate: document.getElementById('appointmentDate').value,
+        appointmentTime: document.getElementById('appointmentTime').value,
+        status: 'scheduled',
+        sessionNotes: '',
+        createdAt: new Date().toISOString()
+      };
+
+      appointments.push(appointment);
+      saveAppointments();
+      e.target.reset();
+      updateReceptionistView();
+      showToast('✅ Agendamento criado com sucesso!');
     }
 
     function updateReceptionistView() {
       const scheduledOnly = appointments.filter(a => a.status === 'scheduled');
       const today = new Date().toISOString().split('T')[0];
-      const todayCount = scheduledOnly.filter(a => a.appointment_date === today).length;
+      const todayCount = scheduledOnly.filter(a => a.appointmentDate === today).length;
       const cancelled = appointments.filter(a => a.status === 'cancelled').length;
 
-      document.getElementById('receptionist-stats').innerHTML = `
+      document.getElementById('receptionistStats').innerHTML = `
         <div class="stat-card">
           <div class="stat-number">${scheduledOnly.length}</div>
           <div class="stat-label">Agendamentos Ativos</div>
@@ -973,37 +880,37 @@
       `;
 
       const recent = [...scheduledOnly]
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 20);
 
       if (recent.length === 0) {
-        document.getElementById('receptionist-appointments').innerHTML = `
+        document.getElementById('receptionistAppointments').innerHTML = `
           <div class="empty-state">
             <div class="icon">📅</div>
             <p>Nenhum agendamento ativo no momento.</p>
           </div>
         `;
       } else {
-        document.getElementById('receptionist-appointments').innerHTML = recent.map(apt => `
+        document.getElementById('receptionistAppointments').innerHTML = recent.map(apt => `
           <div class="appointment-card ${apt.status}">
             <div class="appointment-header">
               <div class="patient-info">
-                <h3>${escapeHtml(apt.patient_name)}</h3>
-                <div class="appointment-datetime">📅 ${formatDate(apt.appointment_date)} às ${apt.appointment_time}</div>
+                <h3>${escapeHtml(apt.patientName)}</h3>
+                <div class="appointment-datetime">📅 ${formatDate(apt.appointmentDate)} às ${apt.appointmentTime}</div>
               </div>
               <span class="status-badge status-${apt.status}">${getStatusText(apt.status)}</span>
             </div>
             <div class="appointment-details">
-              <div class="detail-item"><strong>Idade:</strong> ${escapeHtml(apt.patient_age)}</div>
+              <div class="detail-item"><strong>Idade:</strong> ${escapeHtml(apt.patientAge)}</div>
               <div class="detail-item"><strong>Escola:</strong> ${escapeHtml(apt.school)}</div>
-              <div class="detail-item"><strong>Responsável:</strong> ${escapeHtml(apt.guardian_name)}</div>
-              <div class="detail-item"><strong>Telefone:</strong> ${escapeHtml(apt.guardian_phone)}</div>
+              <div class="detail-item"><strong>Responsável:</strong> ${escapeHtml(apt.guardianName)}</div>
+              <div class="detail-item"><strong>Telefone:</strong> ${escapeHtml(apt.guardianPhone)}</div>
             </div>
             <div class="appointment-actions" style="margin-top: 15px;">
-              <button class="btn btn-primary" onclick="openEditModal('${apt.__backendId}')" style="font-size: 13px; padding: 8px 16px;">
-                ✏️ Editar Agendamento
+              <button class="btn btn-primary" onclick="openEditModal('${apt.id}')" style="font-size: 13px; padding: 8px 16px;">
+                ✏️ Editar
               </button>
-              <button class="btn btn-danger" onclick="cancelAppointmentReceptionist('${apt.__backendId}')" style="font-size: 13px; padding: 8px 16px;">
+              <button class="btn btn-danger" onclick="cancelAppointment('${apt.id}')" style="font-size: 13px; padding: 8px 16px;">
                 ✗ Cancelar
               </button>
             </div>
@@ -1015,9 +922,9 @@
     function updatePsychologistView() {
       const scheduled = appointments.filter(a => a.status === 'scheduled').length;
       const completed = appointments.filter(a => a.status === 'completed').length;
-      const uniquePatients = new Set(appointments.map(a => a.patient_name)).size;
+      const uniquePatients = new Set(appointments.map(a => a.patientName)).size;
 
-      document.getElementById('psychologist-stats').innerHTML = `
+      document.getElementById('psychologistStats').innerHTML = `
         <div class="stat-card">
           <div class="stat-number">${scheduled}</div>
           <div class="stat-label">Agendados</div>
@@ -1036,8 +943,8 @@
     }
 
     function applyFilters() {
-      const statusFilter = document.getElementById('status-filter').value;
-      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
       let filtered = appointments;
 
@@ -1047,7 +954,7 @@
 
       if (searchTerm) {
         filtered = filtered.filter(a => 
-          a.patient_name.toLowerCase().includes(searchTerm)
+          a.patientName.toLowerCase().includes(searchTerm)
         );
       }
 
@@ -1056,13 +963,13 @@
 
     function renderPsychologistAppointments(list) {
       const sorted = [...list].sort((a, b) => {
-        const dateA = new Date(a.appointment_date + ' ' + a.appointment_time);
-        const dateB = new Date(b.appointment_date + ' ' + b.appointment_time);
+        const dateA = new Date(a.appointmentDate + ' ' + a.appointmentTime);
+        const dateB = new Date(b.appointmentDate + ' ' + b.appointmentTime);
         return dateB - dateA;
       });
 
       if (sorted.length === 0) {
-        document.getElementById('psychologist-appointments').innerHTML = `
+        document.getElementById('psychologistAppointments').innerHTML = `
           <div class="empty-state">
             <div class="icon">📋</div>
             <p>Nenhum atendimento encontrado.</p>
@@ -1071,17 +978,17 @@
         return;
       }
 
-      document.getElementById('psychologist-appointments').innerHTML = sorted.map(apt => {
+      document.getElementById('psychologistAppointments').innerHTML = sorted.map(apt => {
         const sessionCount = appointments.filter(a => 
-          a.patient_name === apt.patient_name && a.status === 'completed'
+          a.patientName === apt.patientName && a.status === 'completed'
         ).length;
 
         return `
           <div class="appointment-card ${apt.status}">
             <div class="appointment-header">
               <div class="patient-info">
-                <h3>${escapeHtml(apt.patient_name)}</h3>
-                <div class="appointment-datetime">📅 ${formatDate(apt.appointment_date)} às ${apt.appointment_time}</div>
+                <h3>${escapeHtml(apt.patientName)}</h3>
+                <div class="appointment-datetime">📅 ${formatDate(apt.appointmentDate)} às ${apt.appointmentTime}</div>
               </div>
               <span class="status-badge status-${apt.status}">${getStatusText(apt.status)}</span>
             </div>
@@ -1089,31 +996,26 @@
             <div class="session-count-badge">📊 ${sessionCount} atendimento(s) realizado(s)</div>
             
             <div class="appointment-details">
-              <div class="detail-item"><strong>Idade:</strong> ${escapeHtml(apt.patient_age)}</div>
+              <div class="detail-item"><strong>Idade:</strong> ${escapeHtml(apt.patientAge)}</div>
               <div class="detail-item"><strong>Escola:</strong> ${escapeHtml(apt.school)}</div>
-              <div class="detail-item"><strong>Responsável:</strong> ${escapeHtml(apt.guardian_name)}</div>
-              <div class="detail-item"><strong>Telefone:</strong> ${escapeHtml(apt.guardian_phone)}</div>
+              <div class="detail-item"><strong>Responsável:</strong> ${escapeHtml(apt.guardianName)}</div>
+              <div class="detail-item"><strong>Telefone:</strong> ${escapeHtml(apt.guardianPhone)}</div>
             </div>
 
-            ${apt.session_notes ? `
+            ${apt.sessionNotes ? `
               <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px;">
                 <strong>Observações:</strong><br>
-                <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${escapeHtml(apt.session_notes)}</p>
+                <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${escapeHtml(apt.sessionNotes)}</p>
               </div>
             ` : ''}
 
             <div class="appointment-actions">
               ${apt.status === 'scheduled' ? `
-                <button class="btn btn-success" onclick="openSessionModal('${apt.__backendId}')">
+                <button class="btn btn-success" onclick="openSessionModal('${apt.id}')">
                   ✓ Realizar Atendimento
                 </button>
-                <button class="btn btn-danger" onclick="cancelAppointment('${apt.__backendId}')">
+                <button class="btn btn-danger" onclick="cancelAppointment('${apt.id}')">
                   ✗ Cancelar
-                </button>
-              ` : ''}
-              ${apt.status === 'completed' ? `
-                <button class="btn btn-primary" onclick="viewReport('${apt.__backendId}')">
-                  📄 Ver Relatório
                 </button>
               ` : ''}
             </div>
@@ -1122,316 +1024,95 @@
       }).join('');
     }
 
-    function openEditModal(backendId) {
-      currentEditRecord = appointments.find(a => a.__backendId === backendId);
-      if (!currentEditRecord) return;
+    function openEditModal(id) {
+      currentEditAppointment = appointments.find(a => a.id === id);
+      if (!currentEditAppointment) return;
       
-      document.getElementById('edit-patient-name').value = currentEditRecord.patient_name;
-      document.getElementById('edit-patient-age').value = currentEditRecord.patient_age;
-      document.getElementById('edit-school').value = currentEditRecord.school;
-      document.getElementById('edit-guardian-name').value = currentEditRecord.guardian_name;
-      document.getElementById('edit-guardian-phone').value = currentEditRecord.guardian_phone;
-      document.getElementById('edit-appointment-date').value = currentEditRecord.appointment_date;
-      document.getElementById('edit-appointment-time').value = currentEditRecord.appointment_time;
+      document.getElementById('editPatientName').value = currentEditAppointment.patientName;
+      document.getElementById('editPatientAge').value = currentEditAppointment.patientAge;
+      document.getElementById('editSchool').value = currentEditAppointment.school;
+      document.getElementById('editGuardianName').value = currentEditAppointment.guardianName;
+      document.getElementById('editGuardianPhone').value = currentEditAppointment.guardianPhone;
+      document.getElementById('editAppointmentDate').value = currentEditAppointment.appointmentDate;
+      document.getElementById('editAppointmentTime').value = currentEditAppointment.appointmentTime;
       
-      document.getElementById('edit-modal').classList.add('active');
+      document.getElementById('editModal').classList.add('active');
     }
 
-    async function updateAppointment(event) {
-      event.preventDefault();
+    function updateAppointment(e) {
+      e.preventDefault();
 
-      const updateBtn = document.getElementById('update-btn');
-      const updateText = document.getElementById('update-text');
-      const updateLoading = document.getElementById('update-loading');
+      currentEditAppointment.patientName = document.getElementById('editPatientName').value.trim();
+      currentEditAppointment.patientAge = document.getElementById('editPatientAge').value.trim();
+      currentEditAppointment.school = document.getElementById('editSchool').value.trim();
+      currentEditAppointment.guardianName = document.getElementById('editGuardianName').value.trim();
+      currentEditAppointment.guardianPhone = document.getElementById('editGuardianPhone').value.trim();
+      currentEditAppointment.appointmentDate = document.getElementById('editAppointmentDate').value;
+      currentEditAppointment.appointmentTime = document.getElementById('editAppointmentTime').value;
 
-      updateBtn.disabled = true;
-      updateText.style.display = 'none';
-      updateLoading.style.display = 'inline-block';
-
-      const updatedRecord = {
-        ...currentEditRecord,
-        patient_name: document.getElementById('edit-patient-name').value.trim(),
-        patient_age: document.getElementById('edit-patient-age').value.trim(),
-        school: document.getElementById('edit-school').value.trim(),
-        guardian_name: document.getElementById('edit-guardian-name').value.trim(),
-        guardian_phone: document.getElementById('edit-guardian-phone').value.trim(),
-        appointment_date: document.getElementById('edit-appointment-date').value,
-        appointment_time: document.getElementById('edit-appointment-time').value,
-        last_updated: new Date().toISOString()
-      };
-
-      const result = await window.dataSdk.update(updatedRecord);
-
-      if (result.isOk) {
-        closeModal('edit-modal');
-        showToast('Agendamento atualizado com sucesso!');
-      } else {
-        showToast('Erro ao atualizar agendamento', 'error');
-      }
-
-      updateBtn.disabled = false;
-      updateText.style.display = 'inline';
-      updateLoading.style.display = 'none';
+      saveAppointments();
+      closeModal('editModal');
+      updateReceptionistView();
+      showToast('Agendamento atualizado com sucesso!');
     }
 
-    function openSessionModal(backendId) {
-      currentSessionRecord = appointments.find(a => a.__backendId === backendId);
-      if (!currentSessionRecord) return;
+    function openSessionModal(id) {
+      currentSessionAppointment = appointments.find(a => a.id === id);
+      if (!currentSessionAppointment) return;
       
       const sessionCount = appointments.filter(a => 
-        a.patient_name === currentSessionRecord.patient_name && a.status === 'completed'
+        a.patientName === currentSessionAppointment.patientName && a.status === 'completed'
       ).length;
 
-      document.getElementById('session-patient-info').innerHTML = `
-        <strong style="font-size: 16px; color: #2d3748;">${escapeHtml(currentSessionRecord.patient_name)}</strong><br>
-        <span style="color: #4a5568;">Idade: ${escapeHtml(currentSessionRecord.patient_age)} | Escola: ${escapeHtml(currentSessionRecord.school)}</span><br>
+      document.getElementById('sessionPatientInfo').innerHTML = `
+        <strong style="font-size: 16px; color: #2d3748;">${escapeHtml(currentSessionAppointment.patientName)}</strong><br>
+        <span style="color: #4a5568;">Idade: ${escapeHtml(currentSessionAppointment.patientAge)} | Escola: ${escapeHtml(currentSessionAppointment.school)}</span><br>
         <span style="color: #4a5568;">Atendimentos anteriores: ${sessionCount}</span>
       `;
 
-      document.getElementById('session-notes').value = '';
-      document.getElementById('session-modal').classList.add('active');
+      document.getElementById('sessionNotes').value = '';
+      document.getElementById('sessionModal').classList.add('active');
     }
 
-    async function completeSession(event) {
-      event.preventDefault();
+    function completeSession(e) {
+      e.preventDefault();
 
-      const completeBtn = document.getElementById('complete-btn');
-      const completeText = document.getElementById('complete-text');
-      const completeLoading = document.getElementById('complete-loading');
-
-      completeBtn.disabled = true;
-      completeText.style.display = 'none';
-      completeLoading.style.display = 'inline-block';
-
-      const notes = document.getElementById('session-notes').value.trim();
+      const notes = document.getElementById('sessionNotes').value.trim();
       
-      const updatedRecord = {
-        ...currentSessionRecord,
-        status: 'completed',
-        session_notes: notes,
-        last_updated: new Date().toISOString()
-      };
+      currentSessionAppointment.status = 'completed';
+      currentSessionAppointment.sessionNotes = notes;
 
-      const result = await window.dataSdk.update(updatedRecord);
-
-      if (result.isOk) {
-        closeModal('session-modal');
-        showToast('Atendimento concluído com sucesso!');
-      } else {
-        showToast('Erro ao concluir atendimento', 'error');
-      }
-
-      completeBtn.disabled = false;
-      completeText.style.display = 'inline';
-      completeLoading.style.display = 'none';
+      saveAppointments();
+      closeModal('sessionModal');
+      updatePsychologistView();
+      showToast('Atendimento concluído com sucesso!');
     }
 
-    async function cancelAppointment(backendId) {
-      const confirmed = await showConfirm('Deseja realmente cancelar este agendamento?');
-      
-      if (confirmed) {
-        const record = appointments.find(a => a.__backendId === backendId);
-        if (record) {
-          const updatedRecord = {
-            ...record,
-            status: 'cancelled',
-            last_updated: new Date().toISOString()
-          };
-
-          const result = await window.dataSdk.update(updatedRecord);
-
-          if (result.isOk) {
-            showToast('Agendamento cancelado');
+    function cancelAppointment(id) {
+      if (confirm('Deseja realmente cancelar este agendamento?')) {
+        const appointment = appointments.find(a => a.id === id);
+        if (appointment) {
+          appointment.status = 'cancelled';
+          saveAppointments();
+          
+          if (currentUser === 'receptionist') {
+            updateReceptionistView();
           } else {
-            showToast('Erro ao cancelar agendamento', 'error');
+            updatePsychologistView();
           }
+          
+          showToast('Agendamento cancelado');
         }
       }
-    }
-
-    async function cancelAppointmentReceptionist(backendId) {
-      const confirmed = await showConfirm('Deseja realmente cancelar este agendamento?');
-      
-      if (confirmed) {
-        const record = appointments.find(a => a.__backendId === backendId);
-        if (record) {
-          const updatedRecord = {
-            ...record,
-            status: 'cancelled',
-            last_updated: new Date().toISOString()
-          };
-
-          const result = await window.dataSdk.update(updatedRecord);
-
-          if (result.isOk) {
-            showToast('Agendamento cancelado com sucesso!');
-          } else {
-            showToast('Erro ao cancelar agendamento', 'error');
-          }
-        }
-      }
-    }
-
-    function viewReport(backendId) {
-      currentReportRecord = appointments.find(a => a.__backendId === backendId);
-      if (!currentReportRecord) return;
-      
-      const patientSessions = appointments
-        .filter(a => a.patient_name === currentReportRecord.patient_name && a.status === 'completed')
-        .sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
-
-      const reportHTML = `
-        <div class="report-section">
-          <h4>RELATÓRIO DE ATENDIMENTO PSICOLÓGICO</h4>
-          <p><strong>Instituição:</strong> Secretaria Municipal de Educação</p>
-          <p><strong>Psicóloga:</strong> Dra. Maria Santos</p>
-          <p><strong>Data do Relatório:</strong> ${formatDate(new Date().toISOString().split('T')[0])}</p>
-        </div>
-
-        <div class="report-section">
-          <h4>Dados do Paciente</h4>
-          <p><strong>Nome:</strong> ${escapeHtml(currentReportRecord.patient_name)}</p>
-          <p><strong>Idade:</strong> ${escapeHtml(currentReportRecord.patient_age)}</p>
-          <p><strong>Escola:</strong> ${escapeHtml(currentReportRecord.school)}</p>
-          <p><strong>Responsável:</strong> ${escapeHtml(currentReportRecord.guardian_name)}</p>
-          <p><strong>Telefone:</strong> ${escapeHtml(currentReportRecord.guardian_phone)}</p>
-        </div>
-
-        <div class="report-section">
-          <h4>Histórico de Atendimentos</h4>
-          <p><strong>Total de Atendimentos:</strong> ${patientSessions.length}</p>
-          <p><strong>Primeiro Atendimento:</strong> ${patientSessions.length > 0 ? formatDate(patientSessions[0].appointment_date) : 'N/A'}</p>
-          <p><strong>Último Atendimento:</strong> ${formatDate(currentReportRecord.appointment_date)}</p>
-        </div>
-
-        <div class="report-section">
-          <h4>Observações do Atendimento</h4>
-          <p style="white-space: pre-wrap;">${escapeHtml(currentReportRecord.session_notes || 'Sem observações registradas.')}</p>
-        </div>
-
-        ${patientSessions.length > 1 ? `
-          <div class="report-section">
-            <h4>Histórico Completo de Sessões</h4>
-            ${patientSessions.map((session, index) => `
-              <div style="margin-bottom: 15px; padding: 15px; background: #f7fafc; border-radius: 8px;">
-                <strong>Sessão ${index + 1} - ${formatDate(session.appointment_date)}</strong>
-                <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${escapeHtml(session.session_notes || 'Sem observações')}</p>
-              </div>
-            `).join('')}
-          </div>
-        ` : ''}
-      `;
-
-      document.getElementById('report-content').innerHTML = reportHTML;
-      document.getElementById('report-modal').classList.add('active');
-    }
-
-    function downloadPDF() {
-      if (!currentReportRecord || !window.jspdf) {
-        showToast('Erro ao gerar PDF', 'error');
-        return;
-      }
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      const patientSessions = appointments
-        .filter(a => a.patient_name === currentReportRecord.patient_name && a.status === 'completed')
-        .sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
-
-      let y = 20;
-
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text('RELATÓRIO DE ATENDIMENTO PSICOLÓGICO', 105, y, { align: 'center' });
-      
-      y += 15;
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'normal');
-      doc.text('Instituição: Secretaria Municipal de Educação', 20, y);
-      y += 6;
-      doc.text('Psicóloga: Dra. Maria Santos', 20, y);
-      y += 6;
-      doc.text(`Data: ${formatDate(new Date().toISOString().split('T')[0])}`, 20, y);
-      
-      y += 12;
-      doc.setFont(undefined, 'bold');
-      doc.text('DADOS DO PACIENTE', 20, y);
-      y += 6;
-      doc.setFont(undefined, 'normal');
-      doc.text(`Nome: ${currentReportRecord.patient_name}`, 20, y);
-      y += 6;
-      doc.text(`Idade: ${currentReportRecord.patient_age}`, 20, y);
-      y += 6;
-      doc.text(`Escola: ${currentReportRecord.school}`, 20, y);
-      y += 6;
-      doc.text(`Responsável: ${currentReportRecord.guardian_name}`, 20, y);
-      y += 6;
-      doc.text(`Telefone: ${currentReportRecord.guardian_phone}`, 20, y);
-
-      y += 12;
-      doc.setFont(undefined, 'bold');
-      doc.text('HISTÓRICO', 20, y);
-      y += 6;
-      doc.setFont(undefined, 'normal');
-      doc.text(`Total de Atendimentos: ${patientSessions.length}`, 20, y);
-      y += 6;
-      doc.text(`Primeiro: ${patientSessions.length > 0 ? formatDate(patientSessions[0].appointment_date) : 'N/A'}`, 20, y);
-      y += 6;
-      doc.text(`Último: ${formatDate(currentReportRecord.appointment_date)}`, 20, y);
-
-      y += 12;
-      doc.setFont(undefined, 'bold');
-      doc.text('OBSERVAÇÕES', 20, y);
-      y += 6;
-      doc.setFont(undefined, 'normal');
-      
-      const notes = currentReportRecord.session_notes || 'Sem observações.';
-      const splitNotes = doc.splitTextToSize(notes, 170);
-      doc.text(splitNotes, 20, y);
-
-      const fileName = `Relatorio_${currentReportRecord.patient_name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-
-      showToast('PDF baixado com sucesso!');
     }
 
     function closeModal(modalId) {
       document.getElementById(modalId).classList.remove('active');
-      if (modalId === 'session-modal') {
-        currentSessionRecord = null;
-      } else if (modalId === 'report-modal') {
-        currentReportRecord = null;
-      } else if (modalId === 'edit-modal') {
-        currentEditRecord = null;
+      if (modalId === 'sessionModal') {
+        currentSessionAppointment = null;
+      } else if (modalId === 'editModal') {
+        currentEditAppointment = null;
       }
-    }
-
-    function showConfirm(message) {
-      return new Promise((resolve) => {
-        const backdrop = document.createElement('div');
-        backdrop.className = 'modal active';
-        backdrop.innerHTML = `
-          <div class="modal-content" style="max-width: 400px;">
-            <p style="margin: 0 0 20px 0; text-align: center; font-size: 16px; color: #2d3748;">${escapeHtml(message)}</p>
-            <div style="display: flex; gap: 10px;">
-              <button class="btn btn-danger" id="confirm-yes" style="flex: 1;">Sim</button>
-              <button class="btn btn-secondary" id="confirm-no" style="flex: 1;">Não</button>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(backdrop);
-
-        document.getElementById('confirm-yes').onclick = () => {
-          document.body.removeChild(backdrop);
-          resolve(true);
-        };
-
-        document.getElementById('confirm-no').onclick = () => {
-          document.body.removeChild(backdrop);
-          resolve(false);
-        };
-      });
     }
 
     function showToast(message, type = 'success') {
@@ -1445,6 +1126,17 @@
           document.body.removeChild(toast);
         }
       }, 3000);
+    }
+
+    function saveAppointments() {
+      localStorage.setItem('appointments', JSON.stringify(appointments));
+    }
+
+    function loadAppointments() {
+      const saved = localStorage.getItem('appointments');
+      if (saved) {
+        appointments = JSON.parse(saved);
+      }
     }
 
     function formatDate(dateStr) {
@@ -1466,8 +1158,6 @@
       div.textContent = text;
       return div.innerHTML;
     }
-
-    initApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5c12b151a400c9',t:'MTc2NDM1NjA1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5c1978a1fe00c9',t:'MTc2NDM1NjMzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
