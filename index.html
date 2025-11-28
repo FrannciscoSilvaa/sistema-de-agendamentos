@@ -620,7 +620,7 @@
     </div>
     <div class="stats-grid" id="receptionist-stats"></div>
     <h3 style="margin-bottom: 20px; color: #2d3748;">Novo Agendamento</h3>
-    <form onsubmit="createAppointment(event)">
+    <form id="appointment-form" onsubmit="createAppointment(event)">
      <div class="form-grid">
       <div class="form-group"><label class="form-label" for="patient-name">Nome da Criança *</label> <input type="text" id="patient-name" class="form-input" required>
       </div>
@@ -636,7 +636,7 @@
       </div>
       <div class="form-group"><label class="form-label" for="appointment-time">Horário do Atendimento *</label> <input type="time" id="appointment-time" class="form-input" required>
       </div>
-     </div><button type="submit" class="btn btn-primary" id="create-btn"> <span id="create-text">Agendar Consulta</span> <span class="loading" id="create-loading" style="display: none;"></span> </button>
+     </div><button type="submit" class="btn btn-primary" id="create-btn" style="margin-top: 10px;"> <span id="create-text">✓ Agendar Consulta</span> <span class="loading" id="create-loading" style="display: none;"></span> </button>
     </form>
     <div class="appointments-list">
      <h3 style="margin-bottom: 20px; color: #2d3748;">Agendamentos Recentes</h3>
@@ -1500,5 +1500,5 @@
     // Iniciar aplicação
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bbb9f82ab00c9',t:'MTc2NDM1MjQ5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bc272e47400c9',t:'MTc2NDM1Mjc3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
