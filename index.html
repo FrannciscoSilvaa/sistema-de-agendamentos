@@ -742,11 +742,20 @@
     };
 
     async function initApp() {
+      console.log('🚀 Iniciando aplicação...');
+      console.log('📊 SDK disponível?', !!window.dataSdk);
+      
       if (window.dataSdk) {
+        console.log('✅ Data SDK encontrado, inicializando...');
         const result = await window.dataSdk.init(dataHandler);
+        console.log('📝 Resultado da inicialização:', result);
         if (!result.isOk) {
-          console.error('Erro ao inicializar SDK');
+          console.error('❌ Erro ao inicializar SDK:', result.error);
+        } else {
+          console.log('✅ SDK inicializado com sucesso!');
         }
+      } else {
+        console.error('❌ Data SDK não encontrado!');
       }
 
       setupEventListeners();
@@ -906,6 +915,9 @@
     async function createAppointment(event) {
       event.preventDefault();
 
+      console.log('📝 Tentando criar agendamento...');
+      console.log('📊 SDK disponível?', !!window.dataSdk);
+
       if (appointments.length >= 999) {
         showToast('Limite de 999 agendamentos atingido!', 'error');
         return;
@@ -934,20 +946,28 @@
           last_updated: new Date().toISOString()
         };
 
+        console.log('📋 Dados do agendamento:', appointmentData);
+
         if (!window.dataSdk) {
-          showToast('Sistema de dados não disponível', 'error');
+          console.error('❌ SDK não disponível no momento de criar');
+          showToast('Sistema de dados não disponível. Recarregue a página.', 'error');
           return;
         }
 
+        console.log('🔄 Chamando dataSdk.create...');
         const result = await window.dataSdk.create(appointmentData);
+        console.log('📊 Resultado:', result);
         
         if (result.isOk) {
+          console.log('✅ Agendamento criado com sucesso!');
           event.target.reset();
           showToast('✅ Agendamento criado com sucesso!');
         } else {
-          showToast('❌ Erro ao criar agendamento', 'error');
+          console.error('❌ Erro ao criar:', result.error);
+          showToast('❌ Erro ao criar agendamento: ' + (result.error?.message || 'Erro desconhecido'), 'error');
         }
       } catch (error) {
+        console.error('❌ Exceção capturada:', error);
         showToast('❌ Erro: ' + error.message, 'error');
       } finally {
         createBtn.disabled = false;
@@ -1549,5 +1569,5 @@
 
     initApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5be8bb00cb00c9',t:'MTc2NDM1NDMzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bf040c72200c9',t:'MTc2NDM1NDY0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
