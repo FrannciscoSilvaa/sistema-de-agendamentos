@@ -1,0 +1,1441 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Atendimento Psicológico</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100%;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .system-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2d3748;
+      margin: 0 0 8px 0;
+    }
+
+    .institution-name {
+      font-size: 18px;
+      color: #4a5568;
+      margin: 0;
+    }
+
+    .access-selector {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .access-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 0 0 24px 0;
+    }
+
+    .access-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .access-btn {
+      padding: 32px 24px;
+      border: 3px solid #e2e8f0;
+      border-radius: 16px;
+      background: #f7fafc;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .access-btn:hover {
+      border-color: #667eea;
+      background: #edf2f7;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .access-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .access-label {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 0;
+    }
+
+    .main-panel {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .main-panel.active {
+      display: block;
+    }
+
+    .main-panel:not(.active) {
+      display: none;
+    }
+
+    .access-selector.hidden {
+      display: none;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .panel-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 0;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-secondary {
+      background: #718096;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4a5568;
+    }
+
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #38a169;
+    }
+
+    .btn-danger {
+      background: #f56565;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+
+    .btn:disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .appointments-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .appointment-card {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 20px;
+      border-left: 4px solid #cbd5e0;
+      transition: all 0.2s;
+    }
+
+    .appointment-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .appointment-card.scheduled {
+      border-left-color: #4299e1;
+      background: #ebf8ff;
+    }
+
+    .appointment-card.completed {
+      border-left-color: #48bb78;
+      background: #f0fff4;
+    }
+
+    .appointment-card.cancelled {
+      border-left-color: #f56565;
+      background: #fff5f5;
+    }
+
+    .appointment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .patient-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2d3748;
+      margin: 0 0 4px 0;
+    }
+
+    .appointment-date {
+      font-size: 14px;
+      color: #4a5568;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-scheduled {
+      background: #bee3f8;
+      color: #2c5282;
+    }
+
+    .status-completed {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .status-cancelled {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+
+    .appointment-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    .info-item {
+      display: flex;
+      gap: 6px;
+    }
+
+    .info-label {
+      font-weight: 600;
+    }
+
+    .appointment-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .session-count {
+      background: #667eea;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90%;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #718096;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: #edf2f7;
+      color: #2d3748;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 2px solid #e2e8f0;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2d3748;
+      margin: 0 0 8px 0;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #718096;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #718096;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .filter-bar {
+      background: #f7fafc;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .footer-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      margin: 0 0 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .footer-slogan {
+      font-size: 14px;
+      color: white;
+      font-style: italic;
+      margin: 0 0 12px 0;
+    }
+
+    .footer-dev {
+      font-size: 12px;
+      color: white;
+      margin: 0;
+    }
+
+    .footer-dev-name {
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .access-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .appointment-info {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-title {
+        font-size: 14px;
+      }
+
+      .footer-slogan {
+        font-size: 12px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <header class="header">
+    <h1 class="system-title" id="system-title">Sistema de Atendimento Psicológico</h1>
+    <p class="institution-name" id="institution-name">Secretaria Municipal de Educação</p>
+   </header><!-- Seletor de Acesso -->
+   <div class="access-selector" id="access-selector">
+    <h2 class="access-title">Selecione o Tipo de Acesso</h2>
+    <div class="access-buttons">
+     <div class="access-btn" onclick="showLogin('receptionist')">
+      <div class="access-icon">
+       📋
+      </div>
+      <p class="access-label">Recepcionista</p>
+     </div>
+     <div class="access-btn" onclick="showLogin('psychologist')">
+      <div class="access-icon">
+       👩🏽‍⚕️
+      </div>
+      <p class="access-label">Psicóloga</p>
+     </div>
+    </div>
+   </div><!-- Modal de Login -->
+   <div class="modal" id="login-modal">
+    <div class="modal-content" style="max-width: 400px;">
+     <div class="modal-header">
+      <h3 class="modal-title" id="login-title">Login</h3><button class="close-btn" onclick="closeLoginModal()">×</button>
+     </div>
+     <form id="login-form">
+      <div class="form-group"><label class="form-label" for="login-password">Senha de Acesso</label> <input type="password" id="login-password" class="form-input" required autocomplete="current-password" placeholder="Digite a senha">
+      </div>
+      <div id="login-error" style="display: none; color: #f56565; font-size: 14px; margin-bottom: 12px; text-align: center; font-weight: 600;"></div>
+      <div style="display: flex; gap: 12px;"><button type="submit" class="btn btn-primary" id="login-btn" style="flex: 1;"> <span id="login-text">Entrar</span> <span id="login-spinner" class="loading-spinner" style="display: none;"></span> </button> <button type="button" class="btn btn-secondary" onclick="closeLoginModal()">Cancelar</button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Painel Recepcionista -->
+   <main class="main-panel" id="receptionist-panel">
+    <div class="panel-header">
+     <h2 class="panel-title" id="receptionist-title">��� Agendamento de Consultas</h2><button class="btn btn-secondary" onclick="backToSelector()">← Voltar</button>
+    </div>
+    <div class="stats-grid" id="receptionist-stats"></div>
+    <form id="appointment-form">
+     <div class="form-grid">
+      <div class="form-group"><label class="form-label" for="patient-name">Nome da Criança *</label> <input type="text" id="patient-name" class="form-input" required>
+      </div>
+      <div class="form-group"><label class="form-label" for="patient-age">Idade *</label> <input type="text" id="patient-age" class="form-input" required>
+      </div>
+      <div class="form-group"><label class="form-label" for="school">Escola *</label> <input type="text" id="school" class="form-input" required>
+      </div>
+      <div class="form-group"><label class="form-label" for="guardian-name">Nome do Responsável *</label> <input type="text" id="guardian-name" class="form-input" required>
+      </div>
+      <div class="form-group"><label class="form-label" for="guardian-phone">Telefone do Responsável *</label> <input type="tel" id="guardian-phone" class="form-input" required>
+      </div>
+      <div class="form-group"><label class="form-label" for="appointment-date">Data do Atendimento *</label> <input type="date" id="appointment-date" class="form-input" required>
+      </div>
+      <div class="form-group"><label class="form-label" for="appointment-time">Horário *</label> <input type="time" id="appointment-time" class="form-input" required>
+      </div>
+     </div><button type="submit" class="btn btn-primary" id="schedule-btn"> <span id="schedule-text">Agendar Consulta</span> <span id="schedule-spinner" class="loading-spinner" style="display: none;"></span> </button>
+    </form>
+    <h3 style="margin-top: 32px; color: #2d3748; font-size: 20px;">Agendamentos Recentes</h3>
+    <div class="appointments-grid" id="receptionist-appointments"></div>
+   </main><!-- Painel Psicóloga -->
+   <main class="main-panel" id="psychologist-panel">
+    <div class="panel-header">
+     <h2 class="panel-title" id="psychologist-title">👩🏽‍⚕️ Painel de Atendimentos</h2><button class="btn btn-secondary" onclick="backToSelector()">← Voltar</button>
+    </div>
+    <div class="stats-grid" id="psychologist-stats"></div>
+    <div class="filter-bar">
+     <div class="filter-group"><label class="form-label">Filtrar por Status</label> <select class="form-select" id="status-filter" onchange="filterAppointments()"> <option value="all">Todos</option> <option value="scheduled">Agendados</option> <option value="completed">Concluídos</option> <option value="cancelled">Cancelados</option> </select>
+     </div>
+     <div class="filter-group"><label class="form-label">Buscar Paciente</label> <input type="text" class="form-input" id="search-patient" placeholder="Digite o nome..." oninput="filterAppointments()">
+     </div>
+    </div>
+    <div class="appointments-grid" id="psychologist-appointments"></div>
+   </main><!-- Modal de Atendimento -->
+   <div class="modal" id="session-modal">
+    <div class="modal-content">
+     <div class="modal-header">
+      <h3 class="modal-title">Registrar Atendimento</h3><button class="close-btn" onclick="closeSessionModal()">×</button>
+     </div>
+     <div id="session-patient-info" style="background: #f7fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;"></div>
+     <form id="session-form">
+      <div class="form-group"><label class="form-label" for="session-notes">Observações do Atendimento *</label> <textarea id="session-notes" class="form-textarea" rows="8" required placeholder="Descreva as observações, evolução, técnicas utilizadas, etc."></textarea>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 20px;"><button type="submit" class="btn btn-success" id="complete-btn" style="flex: 1;"> <span id="complete-text">Concluir Atendimento</span> <span id="complete-spinner" class="loading-spinner" style="display: none;"></span> </button> <button type="button" class="btn btn-secondary" onclick="closeSessionModal()">Cancelar</button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Modal de Relat��rio -->
+   <div class="modal" id="report-modal">
+    <div class="modal-content">
+     <div class="modal-header">
+      <h3 class="modal-title">Relatório de Atendimento</h3><button class="close-btn" onclick="closeReportModal()">×</button>
+     </div>
+     <div id="report-content"></div>
+     <div style="display: flex; gap: 12px; margin-top: 20px;"><button class="btn btn-primary" onclick="downloadPDF()" style="flex: 1;"> 📄 Baixar PDF </button> <button class="btn btn-secondary" onclick="closeReportModal()">Fechar</button>
+     </div>
+    </div>
+   </div>
+   <footer class="footer">
+    <div class="footer-title">
+     Secretaria Municipal de Educação de Cocal dos Alves
+    </div>
+    <div class="footer-slogan">
+     "Ensinando com amor, transformando com dedicação!"
+    </div>
+    <div class="footer-dev">
+     💻 Desenvolvido por <span class="footer-dev-name">@FranciscoSilva</span>
+    </div>
+   </footer>
+  </div>
+  <script>
+    const defaultConfig = {
+      background_color: "#667eea",
+      surface_color: "#ffffff",
+      text_color: "#2d3748",
+      primary_action_color: "#667eea",
+      secondary_action_color: "#718096",
+      font_family: "sans-serif",
+      font_size: 16,
+      system_title: "Sistema de Atendimento Psicológico",
+      institution_name: "Secretaria Municipal de Educação",
+      psychologist_name: "Dra. Maria Santos",
+      receptionist_title: "📋 Agendamento de Consultas",
+      psychologist_title: "👩‍⚕️ Painel de Atendimentos"
+    };
+
+    let allAppointments = [];
+    let currentAccess = null;
+    let currentSessionRecord = null;
+    let currentReportRecord = null;
+    let isLoading = false;
+    let pendingAccessType = null;
+
+    // Senhas de acesso
+    const accessPasswords = {
+      receptionist: 'recep123',
+      psychologist: 'psico321'
+    };
+
+    const dataHandler = {
+      onDataChanged(data) {
+        allAppointments = data || [];
+        if (currentAccess) {
+          renderCurrentView();
+        }
+      }
+    };
+
+    async function initializeApp() {
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error("Erro ao inicializar SDK");
+        }
+      }
+
+      setupEventListeners();
+    }
+
+    function setupEventListeners() {
+      document.getElementById('appointment-form').addEventListener('submit', handleScheduleAppointment);
+      document.getElementById('session-form').addEventListener('submit', handleCompleteSession);
+      document.getElementById('login-form').addEventListener('submit', handleLogin);
+    }
+
+    function showLogin(accessType) {
+      pendingAccessType = accessType;
+      const titles = {
+        receptionist: 'Login - Recepcionista',
+        psychologist: 'Login - Psicóloga'
+      };
+      document.getElementById('login-title').textContent = titles[accessType];
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('login-modal').classList.add('active');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('login-modal').classList.remove('active');
+      pendingAccessType = null;
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      
+      if (isLoading || !pendingAccessType) return;
+
+      const password = document.getElementById('login-password').value;
+      const errorDiv = document.getElementById('login-error');
+
+      setLoading('login', true);
+      errorDiv.style.display = 'none';
+
+      // Simular delay de autenticação
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const isValid = password === accessPasswords[pendingAccessType];
+
+      if (isValid) {
+        closeLoginModal();
+        selectAccess(pendingAccessType);
+        showToast('Login realizado com sucesso!', 'success');
+      } else {
+        errorDiv.textContent = 'Senha incorreta';
+        errorDiv.style.display = 'block';
+      }
+
+      setLoading('login', false);
+    }
+
+    function selectAccess(type) {
+      currentAccess = type;
+      document.getElementById('access-selector').classList.add('hidden');
+      
+      if (type === 'receptionist') {
+        document.getElementById('receptionist-panel').classList.add('active');
+        document.getElementById('psychologist-panel').classList.remove('active');
+      } else if (type === 'psychologist') {
+        document.getElementById('psychologist-panel').classList.add('active');
+        document.getElementById('receptionist-panel').classList.remove('active');
+      }
+      
+      renderCurrentView();
+    }
+
+    function backToSelector() {
+      currentAccess = null;
+      document.getElementById('access-selector').classList.remove('hidden');
+      document.getElementById('receptionist-panel').classList.remove('active');
+      document.getElementById('psychologist-panel').classList.remove('active');
+    }
+
+    function renderCurrentView() {
+      if (currentAccess === 'receptionist') {
+        renderReceptionistView();
+      } else if (currentAccess === 'psychologist') {
+        renderPsychologistView();
+      }
+    }
+
+    async function handleScheduleAppointment(e) {
+      e.preventDefault();
+      
+      if (isLoading) return;
+      
+      if (allAppointments.length >= 999) {
+        showToast("Limite de 999 agendamentos atingido", "error");
+        return;
+      }
+
+      setLoading('schedule', true);
+
+      const appointmentData = {
+        patient_name: document.getElementById('patient-name').value.trim(),
+        patient_age: document.getElementById('patient-age').value.trim(),
+        school: document.getElementById('school').value.trim(),
+        guardian_name: document.getElementById('guardian-name').value.trim(),
+        guardian_phone: document.getElementById('guardian-phone').value.trim(),
+        appointment_date: document.getElementById('appointment-date').value,
+        appointment_time: document.getElementById('appointment-time').value,
+        status: 'scheduled',
+        session_notes: '',
+        session_count: 0,
+        created_at: new Date().toISOString(),
+        last_updated: new Date().toISOString()
+      };
+
+      if (window.dataSdk) {
+        const result = await window.dataSdk.create(appointmentData);
+        if (result.isOk) {
+          document.getElementById('appointment-form').reset();
+          showToast("Consulta agendada com sucesso!", "success");
+        } else {
+          showToast("Erro ao agendar consulta", "error");
+        }
+      }
+
+      setLoading('schedule', false);
+    }
+
+    function renderReceptionistView() {
+      renderReceptionistStats();
+      renderReceptionistAppointments();
+    }
+
+    function renderReceptionistStats() {
+      const scheduled = allAppointments.filter(a => a.status === 'scheduled').length;
+      const today = new Date().toISOString().split('T')[0];
+      const todayAppointments = allAppointments.filter(a => a.appointment_date === today).length;
+
+      document.getElementById('receptionist-stats').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-number">${allAppointments.length}</div>
+          <div class="stat-label">Total de Agendamentos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${scheduled}</div>
+          <div class="stat-label">Agendados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${todayAppointments}</div>
+          <div class="stat-label">Hoje</div>
+        </div>
+      `;
+    }
+
+    function renderReceptionistAppointments() {
+      const container = document.getElementById('receptionist-appointments');
+      const recentAppointments = [...allAppointments]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 10);
+
+      if (recentAppointments.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <p>Nenhum agendamento realizado ainda.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = recentAppointments.map(apt => `
+        <div class="appointment-card ${apt.status}">
+          <div class="appointment-header">
+            <div>
+              <h3 class="patient-name">${apt.patient_name}</h3>
+              <div class="appointment-date">📅 ${formatDate(apt.appointment_date)} às ${apt.appointment_time}</div>
+            </div>
+            <span class="status-badge status-${apt.status}">${getStatusLabel(apt.status)}</span>
+          </div>
+          <div class="appointment-info">
+            <div class="info-item">
+              <span class="info-label">Idade:</span>
+              <span>${apt.patient_age}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Escola:</span>
+              <span>${apt.school}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Responsável:</span>
+              <span>${apt.guardian_name}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Telefone:</span>
+              <span>${apt.guardian_phone}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPsychologistView() {
+      renderPsychologistStats();
+      filterAppointments();
+    }
+
+    function renderPsychologistStats() {
+      const scheduled = allAppointments.filter(a => a.status === 'scheduled').length;
+      const completed = allAppointments.filter(a => a.status === 'completed').length;
+      const uniquePatients = new Set(allAppointments.map(a => a.patient_name)).size;
+
+      document.getElementById('psychologist-stats').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-number">${scheduled}</div>
+          <div class="stat-label">Agendados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${completed}</div>
+          <div class="stat-label">Concluídos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${uniquePatients}</div>
+          <div class="stat-label">Pacientes Únicos</div>
+        </div>
+      `;
+    }
+
+    function filterAppointments() {
+      const statusFilter = document.getElementById('status-filter').value;
+      const searchTerm = document.getElementById('search-patient').value.toLowerCase();
+
+      let filtered = allAppointments;
+
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(a => a.status === statusFilter);
+      }
+
+      if (searchTerm) {
+        filtered = filtered.filter(a => a.patient_name.toLowerCase().includes(searchTerm));
+      }
+
+      renderPsychologistAppointments(filtered);
+    }
+
+    function renderPsychologistAppointments(appointments) {
+      const container = document.getElementById('psychologist-appointments');
+      
+      const sorted = [...appointments].sort((a, b) => {
+        const dateA = new Date(a.appointment_date + ' ' + a.appointment_time);
+        const dateB = new Date(b.appointment_date + ' ' + b.appointment_time);
+        return dateB - dateA;
+      });
+
+      if (sorted.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>Nenhum atendimento encontrado.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = sorted.map(apt => {
+        const patientSessions = allAppointments.filter(a => 
+          a.patient_name === apt.patient_name && a.status === 'completed'
+        ).length;
+
+        return `
+          <div class="appointment-card ${apt.status}">
+            <div class="appointment-header">
+              <div>
+                <h3 class="patient-name">${apt.patient_name}</h3>
+                <div class="appointment-date">📅 ${formatDate(apt.appointment_date)} às ${apt.appointment_time}</div>
+              </div>
+              <div style="text-align: right;">
+                <span class="status-badge status-${apt.status}">${getStatusLabel(apt.status)}</span>
+                <div style="margin-top: 8px;">
+                  <span class="session-count">📊 ${patientSessions} atendimento(s)</span>
+                </div>
+              </div>
+            </div>
+            <div class="appointment-info">
+              <div class="info-item">
+                <span class="info-label">Idade:</span>
+                <span>${apt.patient_age}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Escola:</span>
+                <span>${apt.school}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Responsável:</span>
+                <span>${apt.guardian_name}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Telefone:</span>
+                <span>${apt.guardian_phone}</span>
+              </div>
+            </div>
+            ${apt.session_notes ? `
+              <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 8px; font-size: 14px;">
+                <strong>Observações:</strong><br>
+                ${apt.session_notes}
+              </div>
+            ` : ''}
+            <div class="appointment-actions">
+              ${apt.status === 'scheduled' ? `
+                <button class="btn btn-success" onclick='openSessionModal(${JSON.stringify(apt).replace(/'/g, "&#39;")})'>
+                  ✓ Realizar Atendimento
+                </button>
+                <button class="btn btn-danger" onclick='cancelAppointment(${JSON.stringify(apt).replace(/'/g, "&#39;")})'>
+                  ✗ Cancelar
+                </button>
+              ` : ''}
+              ${apt.status === 'completed' ? `
+                <button class="btn btn-primary" onclick='viewReport(${JSON.stringify(apt).replace(/'/g, "&#39;")})'>
+                  📄 Ver Relatório
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openSessionModal(record) {
+      currentSessionRecord = record;
+      
+      const patientSessions = allAppointments.filter(a => 
+        a.patient_name === record.patient_name && a.status === 'completed'
+      ).length;
+
+      document.getElementById('session-patient-info').innerHTML = `
+        <strong style="font-size: 16px; color: #2d3748;">${record.patient_name}</strong><br>
+        <span style="color: #4a5568;">Idade: ${record.patient_age} | Escola: ${record.school}</span><br>
+        <span style="color: #4a5568;">Atendimentos anteriores: ${patientSessions}</span>
+      `;
+
+      document.getElementById('session-notes').value = '';
+      document.getElementById('session-modal').classList.add('active');
+    }
+
+    function closeSessionModal() {
+      document.getElementById('session-modal').classList.remove('active');
+      currentSessionRecord = null;
+    }
+
+    async function handleCompleteSession(e) {
+      e.preventDefault();
+      
+      if (isLoading || !currentSessionRecord) return;
+
+      setLoading('complete', true);
+
+      const notes = document.getElementById('session-notes').value.trim();
+      
+      const patientPreviousSessions = allAppointments.filter(a => 
+        a.patient_name === currentSessionRecord.patient_name && a.status === 'completed'
+      ).length;
+
+      const updatedRecord = {
+        ...currentSessionRecord,
+        status: 'completed',
+        session_notes: notes,
+        session_count: patientPreviousSessions + 1,
+        last_updated: new Date().toISOString()
+      };
+
+      if (window.dataSdk) {
+        const result = await window.dataSdk.update(updatedRecord);
+        if (result.isOk) {
+          closeSessionModal();
+          showToast("Atendimento concluído com sucesso!", "success");
+        } else {
+          showToast("Erro ao concluir atendimento", "error");
+        }
+      }
+
+      setLoading('complete', false);
+    }
+
+    async function cancelAppointment(record) {
+      if (isLoading) return;
+
+      const confirmDiv = document.createElement('div');
+      confirmDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        z-index: 2000;
+        text-align: center;
+      `;
+      confirmDiv.innerHTML = `
+        <p style="margin: 0 0 16px 0; font-size: 16px; color: #2d3748;">Deseja realmente cancelar este agendamento?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button class="btn btn-danger" id="confirm-cancel">Sim, Cancelar</button>
+          <button class="btn btn-secondary" id="cancel-cancel">Não</button>
+        </div>
+      `;
+
+      const backdrop = document.createElement('div');
+      backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1999;
+      `;
+
+      document.body.appendChild(backdrop);
+      document.body.appendChild(confirmDiv);
+
+      document.getElementById('confirm-cancel').onclick = async () => {
+        document.body.removeChild(confirmDiv);
+        document.body.removeChild(backdrop);
+
+        setLoading('cancel', true);
+
+        const updatedRecord = {
+          ...record,
+          status: 'cancelled',
+          last_updated: new Date().toISOString()
+        };
+
+        if (window.dataSdk) {
+          const result = await window.dataSdk.update(updatedRecord);
+          if (result.isOk) {
+            showToast("Agendamento cancelado", "success");
+          } else {
+            showToast("Erro ao cancelar agendamento", "error");
+          }
+        }
+
+        setLoading('cancel', false);
+      };
+
+      document.getElementById('cancel-cancel').onclick = () => {
+        document.body.removeChild(confirmDiv);
+        document.body.removeChild(backdrop);
+      };
+    }
+
+    function viewReport(record) {
+      currentReportRecord = record;
+      
+      const patientAllSessions = allAppointments.filter(a => 
+        a.patient_name === record.patient_name && a.status === 'completed'
+      ).sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
+
+      const reportHTML = `
+        <div style="padding: 20px; background: #f7fafc; border-radius: 8px;">
+          <h3 style="margin: 0 0 16px 0; color: #2d3748; text-align: center; border-bottom: 2px solid #cbd5e0; padding-bottom: 12px;">
+            RELATÓRIO DE ATENDIMENTO PSICOLÓGICO
+          </h3>
+          
+          <div style="margin-bottom: 20px;">
+            <p style="margin: 8px 0;"><strong>Instituição:</strong> ${document.getElementById('institution-name').textContent}</p>
+            <p style="margin: 8px 0;"><strong>Psicóloga:</strong> ${defaultConfig.psychologist_name}</p>
+            <p style="margin: 8px 0;"><strong>Data do Relatório:</strong> ${formatDate(new Date().toISOString().split('T')[0])}</p>
+          </div>
+
+          <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 12px 0; color: #2d3748;">Dados do Paciente</h4>
+            <p style="margin: 6px 0;"><strong>Nome:</strong> ${record.patient_name}</p>
+            <p style="margin: 6px 0;"><strong>Idade:</strong> ${record.patient_age}</p>
+            <p style="margin: 6px 0;"><strong>Escola:</strong> ${record.school}</p>
+            <p style="margin: 6px 0;"><strong>Responsável:</strong> ${record.guardian_name}</p>
+            <p style="margin: 6px 0;"><strong>Telefone:</strong> ${record.guardian_phone}</p>
+          </div>
+
+          <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 12px 0; color: #2d3748;">Histórico de Atendimentos</h4>
+            <p style="margin: 6px 0;"><strong>Total de Atendimentos:</strong> ${patientAllSessions.length}</p>
+            <p style="margin: 6px 0;"><strong>Primeiro Atendimento:</strong> ${patientAllSessions.length > 0 ? formatDate(patientAllSessions[0].appointment_date) : 'N/A'}</p>
+            <p style="margin: 6px 0;"><strong>Último Atendimento:</strong> ${formatDate(record.appointment_date)}</p>
+          </div>
+
+          <div style="background: white; padding: 16px; border-radius: 8px;">
+            <h4 style="margin: 0 0 12px 0; color: #2d3748;">Observações do Atendimento</h4>
+            <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${record.session_notes || 'Sem observações registradas.'}</p>
+          </div>
+
+          ${patientAllSessions.length > 1 ? `
+            <div style="background: white; padding: 16px; border-radius: 8px; margin-top: 20px;">
+              <h4 style="margin: 0 0 12px 0; color: #2d3748;">Histórico Completo</h4>
+              ${patientAllSessions.map((session, index) => `
+                <div style="margin-bottom: 12px; padding: 12px; background: #f7fafc; border-radius: 6px;">
+                  <strong>Sessão ${index + 1} - ${formatDate(session.appointment_date)}</strong>
+                  <p style="margin: 8px 0 0 0; font-size: 14px;">${session.session_notes || 'Sem observações'}</p>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      document.getElementById('report-content').innerHTML = reportHTML;
+      document.getElementById('report-modal').classList.add('active');
+    }
+
+    function closeReportModal() {
+      document.getElementById('report-modal').classList.remove('active');
+      currentReportRecord = null;
+    }
+
+    function downloadPDF() {
+      if (!currentReportRecord || !window.jspdf) {
+        showToast("Erro ao gerar PDF", "error");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const patientAllSessions = allAppointments.filter(a => 
+        a.patient_name === currentReportRecord.patient_name && a.status === 'completed'
+      ).sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
+
+      let yPos = 20;
+
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('RELATÓRIO DE ATENDIMENTO PSICOLÓGICO', 105, yPos, { align: 'center' });
+      
+      yPos += 15;
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Instituição: ${document.getElementById('institution-name').textContent}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Psicóloga: ${defaultConfig.psychologist_name}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Data do Relatório: ${formatDate(new Date().toISOString().split('T')[0])}`, 20, yPos);
+      
+      yPos += 12;
+      doc.setFont(undefined, 'bold');
+      doc.text('DADOS DO PACIENTE', 20, yPos);
+      yPos += 6;
+      doc.setFont(undefined, 'normal');
+      doc.text(`Nome: ${currentReportRecord.patient_name}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Idade: ${currentReportRecord.patient_age}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Escola: ${currentReportRecord.school}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Responsável: ${currentReportRecord.guardian_name}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Telefone: ${currentReportRecord.guardian_phone}`, 20, yPos);
+
+      yPos += 12;
+      doc.setFont(undefined, 'bold');
+      doc.text('HISTÓRICO DE ATENDIMENTOS', 20, yPos);
+      yPos += 6;
+      doc.setFont(undefined, 'normal');
+      doc.text(`Total de Atendimentos: ${patientAllSessions.length}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Primeiro Atendimento: ${patientAllSessions.length > 0 ? formatDate(patientAllSessions[0].appointment_date) : 'N/A'}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Último Atendimento: ${formatDate(currentReportRecord.appointment_date)}`, 20, yPos);
+
+      yPos += 12;
+      doc.setFont(undefined, 'bold');
+      doc.text('OBSERVAÇÕES DO ATENDIMENTO', 20, yPos);
+      yPos += 6;
+      doc.setFont(undefined, 'normal');
+      
+      const notes = currentReportRecord.session_notes || 'Sem observações registradas.';
+      const splitNotes = doc.splitTextToSize(notes, 170);
+      doc.text(splitNotes, 20, yPos);
+
+      const fileName = `Relatorio_${currentReportRecord.patient_name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+
+      showToast("PDF baixado com sucesso!", "success");
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function getStatusLabel(status) {
+      const labels = {
+        scheduled: 'Agendado',
+        completed: 'Concluído',
+        cancelled: 'Cancelado'
+      };
+      return labels[status] || status;
+    }
+
+    function setLoading(type, loading) {
+      isLoading = loading;
+      
+      const configs = {
+        'schedule': { btn: 'schedule-btn', text: 'schedule-text', spinner: 'schedule-spinner' },
+        'complete': { btn: 'complete-btn', text: 'complete-text', spinner: 'complete-spinner' },
+        'login': { btn: 'login-btn', text: 'login-text', spinner: 'login-spinner' }
+      };
+
+      const config = configs[type];
+      if (config) {
+        const btn = document.getElementById(config.btn);
+        const text = document.getElementById(config.text);
+        const spinner = document.getElementById(config.spinner);
+        if (btn && text && spinner) {
+          btn.disabled = loading;
+          text.style.display = loading ? 'none' : 'inline';
+          spinner.style.display = loading ? 'inline-block' : 'none';
+        }
+      }
+    }
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 3000;
+        background: ${type === 'success' ? '#48bb78' : '#f56565'};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 3000);
+    }
+
+    async function onConfigChange(config) {
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const baseSize = config.font_size || defaultConfig.font_size;
+
+      document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, ${config.primary_action_color || defaultConfig.primary_action_color} 100%)`;
+
+      document.getElementById('system-title').textContent = config.system_title || defaultConfig.system_title;
+      document.getElementById('system-title').style.fontSize = `${baseSize * 2}px`;
+      document.getElementById('system-title').style.color = config.text_color || defaultConfig.text_color;
+
+      document.getElementById('institution-name').textContent = config.institution_name || defaultConfig.institution_name;
+      document.getElementById('institution-name').style.fontSize = `${baseSize * 1.125}px`;
+      document.getElementById('institution-name').style.color = config.secondary_action_color || defaultConfig.secondary_action_color;
+
+      document.getElementById('receptionist-title').textContent = config.receptionist_title || defaultConfig.receptionist_title;
+      document.getElementById('receptionist-title').style.fontSize = `${baseSize * 1.5}px`;
+      document.getElementById('receptionist-title').style.color = config.text_color || defaultConfig.text_color;
+
+      document.getElementById('psychologist-title').textContent = config.psychologist_title || defaultConfig.psychologist_title;
+      document.getElementById('psychologist-title').style.fontSize = `${baseSize * 1.5}px`;
+      document.getElementById('psychologist-title').style.color = config.text_color || defaultConfig.text_color;
+
+      const surfaces = document.querySelectorAll('.header, .access-selector, .main-panel');
+      surfaces.forEach(el => {
+        el.style.background = config.surface_color || defaultConfig.surface_color;
+      });
+
+      const primaryBtns = document.querySelectorAll('.btn-primary');
+      primaryBtns.forEach(btn => {
+        btn.style.background = config.primary_action_color || defaultConfig.primary_action_color;
+      });
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.surface_color || defaultConfig.surface_color,
+              set: (value) => {
+                config.surface_color = value;
+                window.elementSdk.setConfig({ surface_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.primary_action_color || defaultConfig.primary_action_color,
+              set: (value) => {
+                config.primary_action_color = value;
+                window.elementSdk.setConfig({ primary_action_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => {
+              config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => {
+              config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["system_title", config.system_title || defaultConfig.system_title],
+          ["institution_name", config.institution_name || defaultConfig.institution_name],
+          ["psychologist_name", config.psychologist_name || defaultConfig.psychologist_name],
+          ["receptionist_title", config.receptionist_title || defaultConfig.receptionist_title],
+          ["psychologist_title", config.psychologist_title || defaultConfig.psychologist_title]
+        ])
+      });
+    }
+
+    initializeApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5b887c575200c9',t:'MTc2NDM1MDM5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
