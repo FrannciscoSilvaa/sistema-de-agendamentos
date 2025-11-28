@@ -915,37 +915,67 @@
       const createText = document.getElementById('create-text');
       const createLoading = document.getElementById('create-loading');
 
+      if (!createBtn || !createText || !createLoading) {
+        console.error('Elementos do botão não encontrados');
+        return;
+      }
+
       createBtn.disabled = true;
       createText.style.display = 'none';
       createLoading.style.display = 'inline-block';
 
-      const appointmentData = {
-        patient_name: document.getElementById('patient-name').value.trim(),
-        patient_age: document.getElementById('patient-age').value.trim(),
-        school: document.getElementById('school').value.trim(),
-        guardian_name: document.getElementById('guardian-name').value.trim(),
-        guardian_phone: document.getElementById('guardian-phone').value.trim(),
-        appointment_date: document.getElementById('appointment-date').value,
-        appointment_time: document.getElementById('appointment-time').value,
-        status: 'scheduled',
-        session_notes: '',
-        created_at: new Date().toISOString(),
-        last_updated: new Date().toISOString()
-      };
+      try {
+        const patientName = document.getElementById('patient-name');
+        const patientAge = document.getElementById('patient-age');
+        const school = document.getElementById('school');
+        const guardianName = document.getElementById('guardian-name');
+        const guardianPhone = document.getElementById('guardian-phone');
+        const appointmentDate = document.getElementById('appointment-date');
+        const appointmentTime = document.getElementById('appointment-time');
 
-      if (window.dataSdk) {
-        const result = await window.dataSdk.create(appointmentData);
-        if (result.isOk) {
-          event.target.reset();
-          showToast('Agendamento criado com sucesso!');
-        } else {
-          showToast('Erro ao criar agendamento', 'error');
+        if (!patientName || !patientAge || !school || !guardianName || !guardianPhone || !appointmentDate || !appointmentTime) {
+          showToast('Erro: campos do formulário não encontrados', 'error');
+          return;
         }
-      }
 
-      createBtn.disabled = false;
-      createText.style.display = 'inline';
-      createLoading.style.display = 'none';
+        const appointmentData = {
+          patient_name: patientName.value.trim(),
+          patient_age: patientAge.value.trim(),
+          school: school.value.trim(),
+          guardian_name: guardianName.value.trim(),
+          guardian_phone: guardianPhone.value.trim(),
+          appointment_date: appointmentDate.value,
+          appointment_time: appointmentTime.value,
+          status: 'scheduled',
+          session_notes: '',
+          created_at: new Date().toISOString(),
+          last_updated: new Date().toISOString()
+        };
+
+        console.log('Criando agendamento:', appointmentData);
+
+        if (window.dataSdk) {
+          const result = await window.dataSdk.create(appointmentData);
+          console.log('Resultado da criação:', result);
+          
+          if (result.isOk) {
+            event.target.reset();
+            showToast('Agendamento criado com sucesso!');
+          } else {
+            console.error('Erro ao criar:', result.error);
+            showToast('Erro ao criar agendamento: ' + (result.error?.message || 'Erro desconhecido'), 'error');
+          }
+        } else {
+          showToast('SDK não disponível', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao criar agendamento:', error);
+        showToast('Erro ao criar agendamento: ' + error.message, 'error');
+      } finally {
+        createBtn.disabled = false;
+        createText.style.display = 'inline';
+        createLoading.style.display = 'none';
+      }
     }
 
     function updateCurrentView() {
@@ -1541,5 +1571,5 @@
 
     initApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bdabb951100c9',t:'MTc2NDM1Mzc2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5be01d84b400c9',t:'MTc2NDM1Mzk4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
