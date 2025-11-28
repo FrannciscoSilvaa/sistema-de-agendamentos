@@ -606,7 +606,9 @@
     </div>
     <div class="login-form" id="login-form">
      <form onsubmit="handleLogin(event)">
-      <div class="form-group"><label class="form-label" for="password">Senha de Acesso</label> <input type="password" id="password" class="form-input" required placeholder="Digite sua senha">
+      <div class="form-group"><label class="form-label" for="password">Senha de Acesso</label>
+       <div style="position: relative;"><input type="password" id="password" class="form-input" required placeholder="Digite sua senha" style="padding-right: 45px;"> <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-size: 16px; padding: 6px 8px; color: #718096; transition: all 0.2s;" onmouseover="this.style.borderColor='#cbd5e0'; this.style.background='#f7fafc'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='none'"> <span id="eye-icon">👁️</span> </button>
+       </div>
       </div>
       <div class="error-message" id="login-error"></div><button type="submit" class="btn btn-primary" id="login-btn"> <span id="login-text">Entrar</span> <span class="loading" id="login-loading" style="display: none;"></span> </button>
      </form>
@@ -735,6 +737,20 @@
       event.target.closest('.access-card').classList.add('selected');
       document.getElementById('login-form').classList.add('active');
       document.getElementById('password').focus();
+    }
+
+    // Alternar visibilidade da senha
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eye-icon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.textContent = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.textContent = '👁️';
+      }
     }
 
     // Login
@@ -1370,5 +1386,5 @@
     // Iniciar aplicação
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5b9a4042aa00c9',t:'MTc2NDM1MTEyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5baa7637eb00c9',t:'MTc2NDM1MTc4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
