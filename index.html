@@ -597,7 +597,7 @@
      </div>
      <div class="access-card" onclick="selectAccessType('psychologist')">
       <div class="icon">
-       👩‍⚕️
+       👩🏽‍⚕️
       </div>
       <div class="title">
        Psicóloga
@@ -630,11 +630,11 @@
       </div>
       <div class="form-group"><label class="form-label" for="guardian-name">Nome do Responsável *</label> <input type="text" id="guardian-name" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="guardian-phone">Telefone *</label> <input type="tel" id="guardian-phone" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="guardian-phone">Telefone do Responsável *</label> <input type="tel" id="guardian-phone" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="appointment-date">Data *</label> <input type="date" id="appointment-date" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="appointment-date">Data de Agendamento *</label> <input type="date" id="appointment-date" class="form-input" required>
       </div>
-      <div class="form-group"><label class="form-label" for="appointment-time">Horário *</label> <input type="time" id="appointment-time" class="form-input" required>
+      <div class="form-group"><label class="form-label" for="appointment-time">Horário do Atendimento *</label> <input type="time" id="appointment-time" class="form-input" required>
       </div>
      </div><button type="submit" class="btn btn-primary" id="create-btn"> <span id="create-text">Agendar Consulta</span> <span class="loading" id="create-loading" style="display: none;"></span> </button>
     </form>
@@ -642,7 +642,7 @@
      <h3 style="margin-bottom: 20px; color: #2d3748;">Agendamentos Recentes</h3>
      <div id="receptionist-appointments"></div>
     </div>
-   </main><!-- Painel da Psicóloga -->
+   </main><!-- Painel da Psic��loga -->
    <main class="main-panel" id="psychologist-panel">
     <div class="panel-header">
      <h2>👩‍⚕️ Painel da Psicóloga</h2><button class="btn btn-secondary" onclick="logout()">Sair</button>
@@ -657,7 +657,34 @@
     <div class="appointments-list">
      <div id="psychologist-appointments"></div>
     </div>
-   </main><!-- Modal de Atendimento -->
+   </main><!-- Modal de Edição -->
+   <div class="modal" id="edit-modal">
+    <div class="modal-content">
+     <div class="modal-header">
+      <h3>Editar Agendamento</h3><button class="close-modal" onclick="closeModal('edit-modal')">×</button>
+     </div>
+     <form onsubmit="updateAppointment(event)">
+      <div class="form-grid">
+       <div class="form-group"><label class="form-label" for="edit-patient-name">Nome da Criança *</label> <input type="text" id="edit-patient-name" class="form-input" required>
+       </div>
+       <div class="form-group"><label class="form-label" for="edit-patient-age">Idade *</label> <input type="text" id="edit-patient-age" class="form-input" required>
+       </div>
+       <div class="form-group"><label class="form-label" for="edit-school">Escola *</label> <input type="text" id="edit-school" class="form-input" required>
+       </div>
+       <div class="form-group"><label class="form-label" for="edit-guardian-name">Nome do Responsável *</label> <input type="text" id="edit-guardian-name" class="form-input" required>
+       </div>
+       <div class="form-group"><label class="form-label" for="edit-guardian-phone">Telefone do Responsável *</label> <input type="tel" id="edit-guardian-phone" class="form-input" required>
+       </div>
+       <div class="form-group"><label class="form-label" for="edit-appointment-date">Data de Agendamento *</label> <input type="date" id="edit-appointment-date" class="form-input" required>
+       </div>
+       <div class="form-group"><label class="form-label" for="edit-appointment-time">Horário do Atendimento *</label> <input type="time" id="edit-appointment-time" class="form-input" required>
+       </div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;"><button type="submit" class="btn btn-success" id="update-btn" style="flex: 1;"> <span id="update-text">Salvar Alterações</span> <span class="loading" id="update-loading" style="display: none;"></span> </button> <button type="button" class="btn btn-secondary" onclick="closeModal('edit-modal')">Cancelar</button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Modal de Atendimento -->
    <div class="modal" id="session-modal">
     <div class="modal-content">
      <div class="modal-header">
@@ -671,7 +698,7 @@
       </div>
      </form>
     </div>
-   </div><!-- Modal de Relatório -->
+   </div><!-- Modal de Relat��rio -->
    <div class="modal" id="report-modal">
     <div class="modal-content">
      <div class="modal-header">
@@ -709,6 +736,7 @@
     let selectedAccessType = null;
     let currentSessionRecord = null;
     let currentReportRecord = null;
+    let currentEditRecord = null;
 
     // Handler do Data SDK
     const dataHandler = {
@@ -724,6 +752,21 @@
         const result = await window.dataSdk.init(dataHandler);
         if (!result.isOk) {
           console.error('Erro ao inicializar SDK');
+        }
+      }
+
+      // Restaurar sessão do localStorage
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById('login-screen').style.display = 'none';
+        
+        if (savedUser === 'receptionist') {
+          document.getElementById('receptionist-panel').classList.add('active');
+          updateReceptionistView();
+        } else {
+          document.getElementById('psychologist-panel').classList.add('active');
+          updatePsychologistView();
         }
       }
     }
@@ -772,6 +815,7 @@
 
       if (password === passwords[selectedAccessType]) {
         currentUser = selectedAccessType;
+        localStorage.setItem('currentUser', selectedAccessType);
         document.getElementById('login-screen').style.display = 'none';
         
         if (selectedAccessType === 'receptionist') {
@@ -798,6 +842,7 @@
     function logout() {
       currentUser = null;
       selectedAccessType = null;
+      localStorage.removeItem('currentUser');
       document.getElementById('receptionist-panel').classList.remove('active');
       document.getElementById('psychologist-panel').classList.remove('active');
       document.getElementById('login-screen').style.display = 'block';
@@ -841,7 +886,13 @@
       if (window.dataSdk) {
         const result = await window.dataSdk.create(appointmentData);
         if (result.isOk) {
-          event.target.reset();
+          document.getElementById('patient-name').value = '';
+          document.getElementById('patient-age').value = '';
+          document.getElementById('school').value = '';
+          document.getElementById('guardian-name').value = '';
+          document.getElementById('guardian-phone').value = '';
+          document.getElementById('appointment-date').value = '';
+          document.getElementById('appointment-time').value = '';
           showToast('Agendamento criado com sucesso!');
         } else {
           showToast('Erro ao criar agendamento', 'error');
@@ -912,6 +963,13 @@
               <div class="detail-item"><strong>Responsável:</strong> ${apt.guardian_name}</div>
               <div class="detail-item"><strong>Telefone:</strong> ${apt.guardian_phone}</div>
             </div>
+            ${apt.status === 'scheduled' ? `
+              <div class="appointment-actions" style="margin-top: 15px;">
+                <button class="btn btn-primary" onclick='openEditModal(${JSON.stringify(apt).replace(/'/g, "&#39;")})' style="font-size: 13px; padding: 8px 16px;">
+                  ✏️ Editar Agendamento
+                </button>
+              </div>
+            ` : ''}
           </div>
         `).join('');
       }
@@ -1029,6 +1087,60 @@
           </div>
         `;
       }).join('');
+    }
+
+    // Abrir modal de edição
+    function openEditModal(record) {
+      currentEditRecord = record;
+      
+      document.getElementById('edit-patient-name').value = record.patient_name;
+      document.getElementById('edit-patient-age').value = record.patient_age;
+      document.getElementById('edit-school').value = record.school;
+      document.getElementById('edit-guardian-name').value = record.guardian_name;
+      document.getElementById('edit-guardian-phone').value = record.guardian_phone;
+      document.getElementById('edit-appointment-date').value = record.appointment_date;
+      document.getElementById('edit-appointment-time').value = record.appointment_time;
+      
+      document.getElementById('edit-modal').classList.add('active');
+    }
+
+    // Atualizar agendamento
+    async function updateAppointment(event) {
+      event.preventDefault();
+
+      const updateBtn = document.getElementById('update-btn');
+      const updateText = document.getElementById('update-text');
+      const updateLoading = document.getElementById('update-loading');
+
+      updateBtn.disabled = true;
+      updateText.style.display = 'none';
+      updateLoading.style.display = 'inline-block';
+
+      const updatedRecord = {
+        ...currentEditRecord,
+        patient_name: document.getElementById('edit-patient-name').value.trim(),
+        patient_age: document.getElementById('edit-patient-age').value.trim(),
+        school: document.getElementById('edit-school').value.trim(),
+        guardian_name: document.getElementById('edit-guardian-name').value.trim(),
+        guardian_phone: document.getElementById('edit-guardian-phone').value.trim(),
+        appointment_date: document.getElementById('edit-appointment-date').value,
+        appointment_time: document.getElementById('edit-appointment-time').value,
+        last_updated: new Date().toISOString()
+      };
+
+      if (window.dataSdk) {
+        const result = await window.dataSdk.update(updatedRecord);
+        if (result.isOk) {
+          closeModal('edit-modal');
+          showToast('Agendamento atualizado com sucesso!');
+        } else {
+          showToast('Erro ao atualizar agendamento', 'error');
+        }
+      }
+
+      updateBtn.disabled = false;
+      updateText.style.display = 'inline';
+      updateLoading.style.display = 'none';
     }
 
     // Abrir modal de sessão
@@ -1237,6 +1349,8 @@
         currentSessionRecord = null;
       } else if (modalId === 'report-modal') {
         currentReportRecord = null;
+      } else if (modalId === 'edit-modal') {
+        currentEditRecord = null;
       }
     }
 
@@ -1386,5 +1500,5 @@
     // Iniciar aplicação
     init();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5baa7637eb00c9',t:'MTc2NDM1MTc4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bbb9f82ab00c9',t:'MTc2NDM1MjQ5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
