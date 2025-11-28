@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Atendimento Psicológico</title>
+  <script src="/_sdk/data_sdk.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
@@ -575,7 +576,6 @@
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
  </head>
@@ -708,6 +708,12 @@
      </div>
     </div>
    </div>
+   <footer style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin-top: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <p style="margin: 0; color: white; font-size: 15px; font-weight: 600;">© 2024 Sistema de Atendimento Psicológico</p>
+    <p style="margin: 8px 0; color: white; font-size: 14px;">Secretaria Municipal de Educação de Cocal dos Alves</p>
+    <p style="margin: 8px 0; color: white; font-size: 13px; font-style: italic;">"Ensinando com amor, transformando com dedicação!"</p>
+    <p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.9); font-size: 12px;">💻 Desenvolvido por <strong style="font-style: italic;">@FranciscoSilva</strong></p>
+   </footer>
   </div>
   <script>
     const passwords = {
@@ -722,24 +728,22 @@
     let currentReportRecord = null;
     let currentEditRecord = null;
 
-    function loadAppointments() {
-      const stored = localStorage.getItem('appointments');
-      if (stored) {
-        try {
-          appointments = JSON.parse(stored);
-        } catch (e) {
-          appointments = [];
+    const dataHandler = {
+      onDataChanged(data) {
+        appointments = data;
+        updateCurrentView();
+      }
+    };
+
+    async function initApp() {
+      if (window.dataSdk) {
+        const initResult = await window.dataSdk.init(dataHandler);
+        if (!initResult.isOk) {
+          console.error('Erro ao inicializar Data SDK');
+          showToast('Erro ao carregar dados', 'error');
         }
       }
-    }
 
-    function saveAppointments() {
-      localStorage.setItem('appointments', JSON.stringify(appointments));
-      updateCurrentView();
-    }
-
-    function initApp() {
-      loadAppointments();
       setupEventListeners();
 
       const savedUser = localStorage.getItem('currentUser');
@@ -897,6 +901,11 @@
     async function createAppointment(event) {
       event.preventDefault();
 
+      if (appointments.length >= 999) {
+        showToast('Limite máximo de 999 agendamentos atingido', 'error');
+        return;
+      }
+
       const createBtn = document.getElementById('create-btn');
       const createText = document.getElementById('create-text');
       const createLoading = document.getElementById('create-loading');
@@ -904,8 +913,6 @@
       createBtn.disabled = true;
       createText.style.display = 'none';
       createLoading.style.display = 'inline-block';
-
-      await new Promise(resolve => setTimeout(resolve, 500));
 
       const appointmentData = {
         id: Date.now().toString(),
@@ -922,11 +929,14 @@
         last_updated: new Date().toISOString()
       };
 
-      appointments.push(appointmentData);
-      saveAppointments();
-      
-      event.target.reset();
-      showToast('✅ Agendamento criado com sucesso!');
+      const result = await window.dataSdk.create(appointmentData);
+
+      if (result.isOk) {
+        event.target.reset();
+        showToast('✅ Agendamento criado com sucesso!');
+      } else {
+        showToast('Erro ao criar agendamento', 'error');
+      }
 
       createBtn.disabled = false;
       createText.style.display = 'inline';
@@ -990,7 +1000,7 @@
             </div>
             ${apt.status === 'scheduled' ? `
               <div class="appointment-actions" style="margin-top: 15px;">
-                <button class="btn btn-primary" onclick="openEditModal('${apt.id}')" style="font-size: 13px; padding: 8px 16px;">
+                <button class="btn btn-primary" onclick="openEditModal('${apt.__backendId}')" style="font-size: 13px; padding: 8px 16px;">
                   ✏️ Editar Agendamento
                 </button>
               </div>
@@ -1092,15 +1102,15 @@
 
             <div class="appointment-actions">
               ${apt.status === 'scheduled' ? `
-                <button class="btn btn-success" onclick="openSessionModal('${apt.id}')">
+                <button class="btn btn-success" onclick="openSessionModal('${apt.__backendId}')">
                   ✓ Realizar Atendimento
                 </button>
-                <button class="btn btn-danger" onclick="cancelAppointment('${apt.id}')">
+                <button class="btn btn-danger" onclick="cancelAppointment('${apt.__backendId}')">
                   ✗ Cancelar
                 </button>
               ` : ''}
               ${apt.status === 'completed' ? `
-                <button class="btn btn-primary" onclick="viewReport('${apt.id}')">
+                <button class="btn btn-primary" onclick="viewReport('${apt.__backendId}')">
                   📄 Ver Relatório
                 </button>
               ` : ''}
@@ -1110,8 +1120,8 @@
       }).join('');
     }
 
-    function openEditModal(id) {
-      currentEditRecord = appointments.find(a => a.id === id);
+    function openEditModal(backendId) {
+      currentEditRecord = appointments.find(a => a.__backendId === backendId);
       if (!currentEditRecord) return;
       
       document.getElementById('edit-patient-name').value = currentEditRecord.patient_name;
@@ -1136,25 +1146,25 @@
       updateText.style.display = 'none';
       updateLoading.style.display = 'inline-block';
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const updatedRecord = {
+        ...currentEditRecord,
+        patient_name: document.getElementById('edit-patient-name').value.trim(),
+        patient_age: document.getElementById('edit-patient-age').value.trim(),
+        school: document.getElementById('edit-school').value.trim(),
+        guardian_name: document.getElementById('edit-guardian-name').value.trim(),
+        guardian_phone: document.getElementById('edit-guardian-phone').value.trim(),
+        appointment_date: document.getElementById('edit-appointment-date').value,
+        appointment_time: document.getElementById('edit-appointment-time').value,
+        last_updated: new Date().toISOString()
+      };
 
-      const index = appointments.findIndex(a => a.id === currentEditRecord.id);
-      if (index !== -1) {
-        appointments[index] = {
-          ...currentEditRecord,
-          patient_name: document.getElementById('edit-patient-name').value.trim(),
-          patient_age: document.getElementById('edit-patient-age').value.trim(),
-          school: document.getElementById('edit-school').value.trim(),
-          guardian_name: document.getElementById('edit-guardian-name').value.trim(),
-          guardian_phone: document.getElementById('edit-guardian-phone').value.trim(),
-          appointment_date: document.getElementById('edit-appointment-date').value,
-          appointment_time: document.getElementById('edit-appointment-time').value,
-          last_updated: new Date().toISOString()
-        };
+      const result = await window.dataSdk.update(updatedRecord);
 
-        saveAppointments();
+      if (result.isOk) {
         closeModal('edit-modal');
         showToast('Agendamento atualizado com sucesso!');
+      } else {
+        showToast('Erro ao atualizar agendamento', 'error');
       }
 
       updateBtn.disabled = false;
@@ -1162,8 +1172,8 @@
       updateLoading.style.display = 'none';
     }
 
-    function openSessionModal(id) {
-      currentSessionRecord = appointments.find(a => a.id === id);
+    function openSessionModal(backendId) {
+      currentSessionRecord = appointments.find(a => a.__backendId === backendId);
       if (!currentSessionRecord) return;
       
       const sessionCount = appointments.filter(a => 
@@ -1191,22 +1201,22 @@
       completeText.style.display = 'none';
       completeLoading.style.display = 'inline-block';
 
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       const notes = document.getElementById('session-notes').value.trim();
-      const index = appointments.findIndex(a => a.id === currentSessionRecord.id);
       
-      if (index !== -1) {
-        appointments[index] = {
-          ...currentSessionRecord,
-          status: 'completed',
-          session_notes: notes,
-          last_updated: new Date().toISOString()
-        };
+      const updatedRecord = {
+        ...currentSessionRecord,
+        status: 'completed',
+        session_notes: notes,
+        last_updated: new Date().toISOString()
+      };
 
-        saveAppointments();
+      const result = await window.dataSdk.update(updatedRecord);
+
+      if (result.isOk) {
         closeModal('session-modal');
         showToast('Atendimento concluído com sucesso!');
+      } else {
+        showToast('Erro ao concluir atendimento', 'error');
       }
 
       completeBtn.disabled = false;
@@ -1214,26 +1224,31 @@
       completeLoading.style.display = 'none';
     }
 
-    async function cancelAppointment(id) {
+    async function cancelAppointment(backendId) {
       const confirmed = await showConfirm('Deseja realmente cancelar este agendamento?');
       
       if (confirmed) {
-        const index = appointments.findIndex(a => a.id === id);
-        if (index !== -1) {
-          appointments[index] = {
-            ...appointments[index],
+        const record = appointments.find(a => a.__backendId === backendId);
+        if (record) {
+          const updatedRecord = {
+            ...record,
             status: 'cancelled',
             last_updated: new Date().toISOString()
           };
 
-          saveAppointments();
-          showToast('Agendamento cancelado');
+          const result = await window.dataSdk.update(updatedRecord);
+
+          if (result.isOk) {
+            showToast('Agendamento cancelado');
+          } else {
+            showToast('Erro ao cancelar agendamento', 'error');
+          }
         }
       }
     }
 
-    function viewReport(id) {
-      currentReportRecord = appointments.find(a => a.id === id);
+    function viewReport(backendId) {
+      currentReportRecord = appointments.find(a => a.__backendId === backendId);
       if (!currentReportRecord) return;
       
       const patientSessions = appointments
@@ -1429,5 +1444,5 @@
 
     initApp();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5bfabc721a00c9',t:'MTc2NDM1NTA3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5c0a93a42200c9',t:'MTc2NDM1NTcyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
