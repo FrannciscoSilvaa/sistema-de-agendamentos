@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Sistema de Atendimento Psicológico - Secretaria Municipal de Educação">
   <title>Sistema de Atendimento Psicológico</title>
+  <script src="/_sdk/data_sdk.js"></script>
   <style>
     * {
       margin: 0;
@@ -535,6 +536,20 @@
       background: #f7fafc;
     }
 
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     footer {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-radius: 12px;
@@ -586,7 +601,6 @@
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
  </head>
@@ -624,7 +638,7 @@
      <div class="error-message" id="loginError" role="alert"></div><button type="submit" class="btn btn-primary" id="loginBtn"> Entrar </button>
     </form>
    </div>
-   <main class="main-panel" id="receptionistPanel">
+   <main class="main-panel" id="receptionistPanel" role="main">
     <div class="panel-header">
      <h2>📋 Painel da Recepcionista</h2><button class="btn btn-secondary" id="logoutReceptionist">Sair</button>
     </div>
@@ -650,14 +664,14 @@
       </div>
       <div class="form-group"><label class="form-label" for="appointmentTime">Horário do Atendimento *</label> <input type="time" id="appointmentTime" class="form-input" required>
       </div>
-     </div><button type="submit" class="btn btn-primary" style="margin-top: 10px;"> ✓ Agendar Consulta </button>
+     </div><button type="submit" class="btn btn-primary" style="margin-top: 10px;" id="createAppointmentBtn"> ✓ Agendar Consulta </button>
     </form>
     <div class="appointments-list">
      <h3 style="margin-bottom: 20px; color: #2d3748;">Agendamentos Ativos</h3>
      <div id="receptionistAppointments"></div>
     </div>
    </main>
-   <main class="main-panel" id="psychologistPanel">
+   <main class="main-panel" id="psychologistPanel" role="main">
     <div class="panel-header">
      <h2>👩‍⚕️ Painel da Psicóloga</h2><button class="btn btn-secondary" id="logoutPsychologist">Sair</button>
     </div>
@@ -694,7 +708,7 @@
        <div class="form-group"><label class="form-label" for="editAppointmentTime">Horário do Atendimento *</label> <input type="time" id="editAppointmentTime" class="form-input" required>
        </div>
       </div>
-      <div style="display: flex; gap: 10px; margin-top: 20px;"><button type="submit" class="btn btn-success" style="flex: 1;"> Salvar Alterações </button> <button type="button" class="btn btn-secondary" data-modal="editModal">Cancelar</button>
+      <div style="display: flex; gap: 10px; margin-top: 20px;"><button type="submit" class="btn btn-success" style="flex: 1;" id="updateAppointmentBtn"> Salvar Alterações </button> <button type="button" class="btn btn-secondary" data-modal="editModal">Cancelar</button>
       </div>
      </form>
     </div>
@@ -708,7 +722,7 @@
      <form id="sessionForm">
       <div class="form-group"><label class="form-label" for="sessionNotes">Observações do Atendimento *</label> <textarea id="sessionNotes" required placeholder="Descreva as observações, evolução, técnicas utilizadas..."></textarea>
       </div>
-      <div style="display: flex; gap: 10px;"><button type="submit" class="btn btn-success" style="flex: 1;"> Concluir Atendimento </button> <button type="button" class="btn btn-secondary" data-modal="sessionModal">Cancelar</button>
+      <div style="display: flex; gap: 10px;"><button type="submit" class="btn btn-success" style="flex: 1;" id="completeSessionBtn"> Concluir Atendimento </button> <button type="button" class="btn btn-secondary" data-modal="sessionModal">Cancelar</button>
       </div>
      </form>
     </div>
@@ -722,7 +736,7 @@
      <form id="absenceForm">
       <div class="form-group"><label class="form-label" for="absenceReason">Motivo da Falta *</label> <textarea id="absenceReason" required placeholder="Descreva o motivo da falta ou ausência do paciente..." style="min-height: 120px;"></textarea>
       </div>
-      <div style="display: flex; gap: 10px;"><button type="submit" class="btn btn-danger" style="flex: 1;"> Registrar Falta </button> <button type="button" class="btn btn-secondary" data-modal="absenceModal">Cancelar</button>
+      <div style="display: flex; gap: 10px;"><button type="submit" class="btn btn-danger" style="flex: 1;" id="registerAbsenceBtn"> Registrar Falta </button> <button type="button" class="btn btn-secondary" data-modal="absenceModal">Cancelar</button>
       </div>
      </form>
     </div>
@@ -743,17 +757,33 @@
         psychologist: 'bia321'
       };
 
-      let appointments = [];
-      let patients = [];
+      let allRecords = [];
       let currentUser = null;
       let selectedAccessType = null;
       let currentEditAppointment = null;
       let currentSessionAppointment = null;
       let currentAbsenceAppointment = null;
 
-      function init() {
-        loadAppointments();
-        loadPatients();
+      const dataHandler = {
+        onDataChanged: function(data) {
+          allRecords = data;
+          
+          if (currentUser === 'receptionist') {
+            updateReceptionistView();
+          } else if (currentUser === 'psychologist') {
+            updatePsychologistView();
+          }
+        }
+      };
+
+      async function init() {
+        if (window.dataSdk) {
+          const result = await window.dataSdk.init(dataHandler);
+          if (!result.isOk) {
+            showToast('Erro ao conectar com o servidor', 'error');
+          }
+        }
+        
         setupEventListeners();
         checkSavedSession();
       }
@@ -962,8 +992,19 @@
         }
       }
 
-      function createAppointment(e) {
+      async function createAppointment(e) {
         e.preventDefault();
+
+        if (allRecords.length >= 999) {
+          showToast('Limite de 999 agendamentos atingido. Exclua alguns antes de continuar.', 'error');
+          return;
+        }
+
+        const btn = document.getElementById('createAppointmentBtn');
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span class="loading-spinner"></span> Salvando...';
+        }
 
         const patientNameInput = document.getElementById('patientName');
         const patientAgeInput = document.getElementById('patientAge');
@@ -974,40 +1015,21 @@
         const appointmentTimeInput = document.getElementById('appointmentTime');
 
         if (!patientNameInput || !patientAgeInput || !schoolInput || !guardianNameInput || !guardianPhoneInput || !appointmentDateInput || !appointmentTimeInput) {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '✓ Agendar Consulta';
+          }
           return;
-        }
-
-        const patientName = patientNameInput.value.trim();
-        const patientAge = patientAgeInput.value.trim();
-        const school = schoolInput.value.trim();
-        const guardianName = guardianNameInput.value.trim();
-        const guardianPhone = guardianPhoneInput.value.trim();
-
-        const existingPatient = patients.find(function(p) {
-          return p.name.toLowerCase() === patientName.toLowerCase();
-        });
-
-        if (!existingPatient) {
-          const newPatient = {
-            id: Date.now().toString(),
-            name: patientName,
-            age: patientAge,
-            school: school,
-            guardianName: guardianName,
-            guardianPhone: guardianPhone
-          };
-          patients.push(newPatient);
-          savePatients();
-          updatePatientSelect();
         }
 
         const appointment = {
           id: Date.now().toString(),
-          patientName: patientName,
-          patientAge: patientAge,
-          school: school,
-          guardianName: guardianName,
-          guardianPhone: guardianPhone,
+          type: 'appointment',
+          patientName: patientNameInput.value.trim(),
+          patientAge: patientAgeInput.value.trim(),
+          school: schoolInput.value.trim(),
+          guardianName: guardianNameInput.value.trim(),
+          guardianPhone: guardianPhoneInput.value.trim(),
           appointmentDate: appointmentDateInput.value,
           appointmentTime: appointmentTimeInput.value,
           status: 'scheduled',
@@ -1016,21 +1038,33 @@
           createdAt: new Date().toISOString()
         };
 
-        appointments.push(appointment);
-        saveAppointments();
-        e.target.reset();
-        
-        const patientSelect = document.getElementById('patientSelect');
-        if (patientSelect) {
-          patientSelect.value = '';
+        if (window.dataSdk) {
+          const result = await window.dataSdk.create(appointment);
+          
+          if (result.isOk) {
+            e.target.reset();
+            const patientSelect = document.getElementById('patientSelect');
+            if (patientSelect) {
+              patientSelect.value = '';
+            }
+            showToast('✅ Agendamento criado com sucesso!');
+          } else {
+            showToast('Erro ao criar agendamento. Tente novamente.', 'error');
+          }
         }
-        
-        updateReceptionistView();
-        showToast('✅ Agendamento criado com sucesso!');
+
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '✓ Agendar Consulta';
+        }
       }
 
       function updateReceptionistView() {
         updatePatientSelect();
+        
+        const appointments = allRecords.filter(function(r) {
+          return r.type === 'appointment';
+        });
         
         const scheduledOnly = appointments.filter(function(a) {
           return a.status === 'scheduled';
@@ -1040,6 +1074,11 @@
         const todayCount = scheduledOnly.filter(function(a) {
           return a.appointmentDate === today;
         }).length;
+
+        const uniquePatients = new Set();
+        appointments.forEach(function(a) {
+          uniquePatients.add(a.patientName);
+        });
 
         const statsContainer = document.getElementById('receptionistStats');
         if (statsContainer) {
@@ -1053,7 +1092,7 @@
               '<div class="stat-label">Hoje</div>' +
             '</div>' +
             '<div class="stat-card">' +
-              '<div class="stat-number">' + patients.length + '</div>' +
+              '<div class="stat-number">' + uniquePatients.size + '</div>' +
               '<div class="stat-label">Alunos Cadastrados</div>' +
             '</div>';
         }
@@ -1088,7 +1127,7 @@
                 '<div class="detail-item"><strong>Telefone:</strong> ' + escapeHtml(apt.guardianPhone) + '</div>' +
               '</div>' +
               '<div class="appointment-actions" style="margin-top: 15px;">' +
-                '<button class="btn btn-primary" onclick="window.appFunctions.openEditModal(\'' + apt.id + '\')" style="font-size: 13px; padding: 8px 16px;">' +
+                '<button class="btn btn-primary" onclick="window.appFunctions.openEditModal(\'' + apt.__backendId + '\')" style="font-size: 13px; padding: 8px 16px;">' +
                   '✏️ Editar' +
                 '</button>' +
               '</div>' +
@@ -1098,6 +1137,10 @@
       }
 
       function updatePsychologistView() {
+        const appointments = allRecords.filter(function(r) {
+          return r.type === 'appointment';
+        });
+        
         const scheduled = appointments.filter(function(a) {
           return a.status === 'scheduled';
         }).length;
@@ -1139,6 +1182,10 @@
         const statusValue = statusFilter.value;
         const searchTerm = searchInput.value.toLowerCase();
 
+        const appointments = allRecords.filter(function(r) {
+          return r.type === 'appointment';
+        });
+
         let filtered = appointments.slice();
 
         if (statusValue !== 'all') {
@@ -1174,6 +1221,10 @@
             '</div>';
           return;
         }
+
+        const appointments = allRecords.filter(function(r) {
+          return r.type === 'appointment';
+        });
 
         appointmentsContainer.innerHTML = sorted.map(function(apt) {
           const sessionCount = appointments.filter(function(a) {
@@ -1224,10 +1275,10 @@
           html += '<div class="appointment-actions">';
           
           if (apt.status === 'scheduled') {
-            html += '<button class="btn btn-success" onclick="window.appFunctions.openSessionModal(\'' + apt.id + '\')">' +
+            html += '<button class="btn btn-success" onclick="window.appFunctions.openSessionModal(\'' + apt.__backendId + '\')">' +
               '✓ Realizar Atendimento' +
             '</button>' +
-            '<button class="btn btn-danger" onclick="window.appFunctions.openAbsenceModal(\'' + apt.id + '\')">' +
+            '<button class="btn btn-danger" onclick="window.appFunctions.openAbsenceModal(\'' + apt.__backendId + '\')">' +
               '❌ Registrar Falta' +
             '</button>';
           }
@@ -1238,9 +1289,9 @@
         }).join('');
       }
 
-      function openEditModal(id) {
-        currentEditAppointment = appointments.find(function(a) {
-          return a.id === id;
+      function openEditModal(backendId) {
+        currentEditAppointment = allRecords.find(function(a) {
+          return a.__backendId === backendId;
         });
         
         if (!currentEditAppointment) return;
@@ -1267,10 +1318,16 @@
         }
       }
 
-      function updateAppointment(e) {
+      async function updateAppointment(e) {
         e.preventDefault();
 
         if (!currentEditAppointment) return;
+
+        const btn = document.getElementById('updateAppointmentBtn');
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span class="loading-spinner"></span> Salvando...';
+        }
 
         const editPatientName = document.getElementById('editPatientName');
         const editPatientAge = document.getElementById('editPatientAge');
@@ -1288,18 +1345,33 @@
         if (editAppointmentDate) currentEditAppointment.appointmentDate = editAppointmentDate.value;
         if (editAppointmentTime) currentEditAppointment.appointmentTime = editAppointmentTime.value;
 
-        saveAppointments();
-        closeModal('editModal');
-        updateReceptionistView();
-        showToast('Agendamento atualizado com sucesso!');
+        if (window.dataSdk) {
+          const result = await window.dataSdk.update(currentEditAppointment);
+          
+          if (result.isOk) {
+            closeModal('editModal');
+            showToast('Agendamento atualizado com sucesso!');
+          } else {
+            showToast('Erro ao atualizar agendamento. Tente novamente.', 'error');
+          }
+        }
+
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Salvar Alterações';
+        }
       }
 
-      function openSessionModal(id) {
-        currentSessionAppointment = appointments.find(function(a) {
-          return a.id === id;
+      function openSessionModal(backendId) {
+        currentSessionAppointment = allRecords.find(function(a) {
+          return a.__backendId === backendId;
         });
         
         if (!currentSessionAppointment) return;
+        
+        const appointments = allRecords.filter(function(r) {
+          return r.type === 'appointment';
+        });
         
         const sessionCount = appointments.filter(function(a) {
           return a.patientName === currentSessionAppointment.patientName && a.status === 'completed';
@@ -1324,31 +1396,58 @@
         }
       }
 
-      function completeSession(e) {
+      async function completeSession(e) {
         e.preventDefault();
 
         if (!currentSessionAppointment) return;
 
+        const btn = document.getElementById('completeSessionBtn');
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span class="loading-spinner"></span> Salvando...';
+        }
+
         const sessionNotes = document.getElementById('sessionNotes');
-        if (!sessionNotes) return;
+        if (!sessionNotes) {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Concluir Atendimento';
+          }
+          return;
+        }
         
         const notes = sessionNotes.value.trim();
         
         currentSessionAppointment.status = 'completed';
         currentSessionAppointment.sessionNotes = notes;
 
-        saveAppointments();
-        closeModal('sessionModal');
-        updatePsychologistView();
-        showToast('Atendimento concluído com sucesso!');
+        if (window.dataSdk) {
+          const result = await window.dataSdk.update(currentSessionAppointment);
+          
+          if (result.isOk) {
+            closeModal('sessionModal');
+            showToast('Atendimento concluído com sucesso!');
+          } else {
+            showToast('Erro ao concluir atendimento. Tente novamente.', 'error');
+          }
+        }
+
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Concluir Atendimento';
+        }
       }
 
-      function openAbsenceModal(id) {
-        currentAbsenceAppointment = appointments.find(function(a) {
-          return a.id === id;
+      function openAbsenceModal(backendId) {
+        currentAbsenceAppointment = allRecords.find(function(a) {
+          return a.__backendId === backendId;
         });
         
         if (!currentAbsenceAppointment) return;
+        
+        const appointments = allRecords.filter(function(r) {
+          return r.type === 'appointment';
+        });
         
         const sessionCount = appointments.filter(function(a) {
           return a.patientName === currentAbsenceAppointment.patientName && a.status === 'completed';
@@ -1377,23 +1476,46 @@
         }
       }
 
-      function registerAbsence(e) {
+      async function registerAbsence(e) {
         e.preventDefault();
 
         if (!currentAbsenceAppointment) return;
 
+        const btn = document.getElementById('registerAbsenceBtn');
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span class="loading-spinner"></span> Salvando...';
+        }
+
         const absenceReason = document.getElementById('absenceReason');
-        if (!absenceReason) return;
+        if (!absenceReason) {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Registrar Falta';
+          }
+          return;
+        }
         
         const reason = absenceReason.value.trim();
         
         currentAbsenceAppointment.status = 'cancelled';
         currentAbsenceAppointment.absenceReason = reason;
 
-        saveAppointments();
-        closeModal('absenceModal');
-        updatePsychologistView();
-        showToast('Falta registrada com sucesso', 'error');
+        if (window.dataSdk) {
+          const result = await window.dataSdk.update(currentAbsenceAppointment);
+          
+          if (result.isOk) {
+            closeModal('absenceModal');
+            showToast('Falta registrada com sucesso', 'error');
+          } else {
+            showToast('Erro ao registrar falta. Tente novamente.', 'error');
+          }
+        }
+
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Registrar Falta';
+        }
       }
 
       function closeModal(modalId) {
@@ -1425,60 +1547,37 @@
         }, 3000);
       }
 
-      function saveAppointments() {
-        try {
-          localStorage.setItem('appointments', JSON.stringify(appointments));
-        } catch (err) {
-          console.error('Erro ao salvar agendamentos:', err);
-          showToast('Erro ao salvar dados', 'error');
-        }
-      }
-
-      function loadAppointments() {
-        try {
-          const saved = localStorage.getItem('appointments');
-          if (saved) {
-            appointments = JSON.parse(saved);
-          }
-        } catch (err) {
-          console.error('Erro ao carregar agendamentos:', err);
-          appointments = [];
-        }
-      }
-
-      function savePatients() {
-        try {
-          localStorage.setItem('patients', JSON.stringify(patients));
-        } catch (err) {
-          console.error('Erro ao salvar pacientes:', err);
-        }
-      }
-
-      function loadPatients() {
-        try {
-          const saved = localStorage.getItem('patients');
-          if (saved) {
-            patients = JSON.parse(saved);
-          }
-        } catch (err) {
-          console.error('Erro ao carregar pacientes:', err);
-          patients = [];
-        }
-      }
-
       function updatePatientSelect() {
         const select = document.getElementById('patientSelect');
         if (!select) return;
         
-        const sortedPatients = patients.slice().sort(function(a, b) {
-          return a.name.localeCompare(b.name);
+        const appointments = allRecords.filter(function(r) {
+          return r.type === 'appointment';
+        });
+        
+        const uniquePatients = [];
+        const seen = new Set();
+        
+        appointments.forEach(function(apt) {
+          if (!seen.has(apt.patientName)) {
+            seen.add(apt.patientName);
+            uniquePatients.push(apt);
+          }
+        });
+        
+        const sortedPatients = uniquePatients.sort(function(a, b) {
+          return a.patientName.localeCompare(b.patientName);
         });
         
         select.innerHTML = '<option value="">-- Novo Aluno --</option>';
         sortedPatients.forEach(function(patient) {
           const option = document.createElement('option');
           option.value = patient.id;
-          option.textContent = patient.name;
+          option.textContent = patient.patientName;
+          option.dataset.age = patient.patientAge;
+          option.dataset.school = patient.school;
+          option.dataset.guardian = patient.guardianName;
+          option.dataset.phone = patient.guardianPhone;
           select.appendChild(option);
         });
       }
@@ -1487,7 +1586,7 @@
         const select = document.getElementById('patientSelect');
         if (!select) return;
         
-        const patientId = select.value;
+        const selectedOption = select.options[select.selectedIndex];
         
         const patientName = document.getElementById('patientName');
         const patientAge = document.getElementById('patientAge');
@@ -1495,7 +1594,7 @@
         const guardianName = document.getElementById('guardianName');
         const guardianPhone = document.getElementById('guardianPhone');
         
-        if (!patientId) {
+        if (!select.value) {
           if (patientName) patientName.value = '';
           if (patientAge) patientAge.value = '';
           if (school) school.value = '';
@@ -1504,17 +1603,11 @@
           return;
         }
 
-        const patient = patients.find(function(p) {
-          return p.id === patientId;
-        });
-        
-        if (patient) {
-          if (patientName) patientName.value = patient.name;
-          if (patientAge) patientAge.value = patient.age;
-          if (school) school.value = patient.school;
-          if (guardianName) guardianName.value = patient.guardianName;
-          if (guardianPhone) guardianPhone.value = patient.guardianPhone;
-        }
+        if (patientName) patientName.value = selectedOption.textContent;
+        if (patientAge) patientAge.value = selectedOption.dataset.age || '';
+        if (school) school.value = selectedOption.dataset.school || '';
+        if (guardianName) guardianName.value = selectedOption.dataset.guardian || '';
+        if (guardianPhone) guardianPhone.value = selectedOption.dataset.phone || '';
       }
 
       function formatDate(dateStr) {
@@ -1550,5 +1643,5 @@
       }
     })();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a761e4844eaf623',t:'MTc2NDYyOTE2Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a76285af43af623',t:'MTc2NDYyOTU3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
